@@ -1,17 +1,18 @@
 SRC = $(wildcard src/*.elm)
+TARGET = build/elm.js
 
-build: build/elm.js
+build: $(TARGET)
 
 debug:
 	@echo "Compiling Elm files... in debug mode!"
-	elm make src/Main.elm --output build/elm.js --debug
+	elm make src/Main.elm --output $(TARGET) --debug
 
-build/elm.js: $(SRC)
+$(TARGET): $(SRC)
 	@echo "Compiling Elm files..."
-	elm make src/Main.elm --output build/elm.js
+	elm make src/Main.elm --output $(TARGET)
 
 clean:
 	@echo "Cleaning up..."
-	rm -f build/elm.js
+	rm -f $(TARGET)
 
 .PHONY: build clean debug
