@@ -5674,9 +5674,7 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$application = _Browser_application;
 var $elm$json$Json$Decode$field = _Json_decodeField;
-var $author$project$Main$Home = function (a) {
-	return {$: 'Home', a: a};
-};
+var $author$project$Main$Error = {$: 'Error'};
 var $author$project$Main$Model = F4(
 	function (key, url, page, isPhone) {
 		return {isPhone: isPhone, key: key, page: page, url: url};
@@ -5686,9 +5684,6 @@ var $author$project$Main$Blog = function (a) {
 };
 var $author$project$Main$BlogMsg = function (a) {
 	return {$: 'BlogMsg', a: a};
-};
-var $author$project$Main$Projects = function (a) {
-	return {$: 'Projects', a: a};
 };
 var $author$project$Blog$Index = function (a) {
 	return {$: 'Index', a: a};
@@ -7392,41 +7387,20 @@ var $author$project$Main$changeRoute = F2(
 		if (route.$ === 'Nothing') {
 			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		} else {
-			switch (route.a.$) {
-				case 'HomeRoute':
-					var _v1 = route.a;
-					return _Utils_Tuple2(
-						_Utils_update(
+			var maybeFileName = route.a.a;
+			return A2(
+				$elm$core$Tuple$mapSecond,
+				$elm$core$Platform$Cmd$map($author$project$Main$BlogMsg),
+				A2(
+					$elm$core$Tuple$mapFirst,
+					function (blogModel) {
+						return _Utils_update(
 							model,
 							{
-								page: $author$project$Main$Home(_Utils_Tuple0)
-							}),
-						$elm$core$Platform$Cmd$none);
-				case 'BlogRoute':
-					var maybeFileName = route.a.a;
-					return A2(
-						$elm$core$Tuple$mapSecond,
-						$elm$core$Platform$Cmd$map($author$project$Main$BlogMsg),
-						A2(
-							$elm$core$Tuple$mapFirst,
-							function (blogModel) {
-								return _Utils_update(
-									model,
-									{
-										page: $author$project$Main$Blog(blogModel)
-									});
-							},
-							$author$project$Blog$init(maybeFileName)));
-				default:
-					var _v2 = route.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								page: $author$project$Main$Projects(_Utils_Tuple0)
-							}),
-						$elm$core$Platform$Cmd$none);
-			}
+								page: $author$project$Main$Blog(blogModel)
+							});
+					},
+					$author$project$Blog$init(maybeFileName)));
 		}
 	});
 var $elm$core$List$any = F2(
@@ -7585,8 +7559,6 @@ var $elm$url$Url$Parser$parse = F2(
 var $author$project$Main$BlogRoute = function (a) {
 	return {$: 'BlogRoute', a: a};
 };
-var $author$project$Main$HomeRoute = {$: 'HomeRoute'};
-var $author$project$Main$ProjectsRoute = {$: 'ProjectsRoute'};
 var $elm$url$Url$Parser$Parser = function (a) {
 	return {$: 'Parser', a: a};
 };
@@ -7727,33 +7699,24 @@ var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
 		return _List_fromArray(
 			[state]);
 	});
-var $author$project$Main$routeParser = $elm$url$Url$Parser$oneOf(
-	_List_fromArray(
-		[
-			A2($elm$url$Url$Parser$map, $author$project$Main$HomeRoute, $elm$url$Url$Parser$top),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Main$BlogRoute,
-			A2(
-				$elm$url$Url$Parser$slash,
-				$elm$url$Url$Parser$s('blog'),
-				$elm$url$Url$Parser$oneOf(
-					_List_fromArray(
-						[
-							A2($elm$url$Url$Parser$map, $elm$core$Maybe$Nothing, $elm$url$Url$Parser$top),
-							A2(
-							$elm$url$Url$Parser$map,
-							$elm$core$Maybe$Just,
-							A2(
-								$elm$url$Url$Parser$slash,
-								$elm$url$Url$Parser$s('posts'),
-								$elm$url$Url$Parser$string))
-						])))),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Main$ProjectsRoute,
-			$elm$url$Url$Parser$s('projects'))
-		]));
+var $author$project$Main$routeParser = A2(
+	$elm$url$Url$Parser$map,
+	$author$project$Main$BlogRoute,
+	A2(
+		$elm$url$Url$Parser$slash,
+		$elm$url$Url$Parser$s('blog'),
+		$elm$url$Url$Parser$oneOf(
+			_List_fromArray(
+				[
+					A2($elm$url$Url$Parser$map, $elm$core$Maybe$Nothing, $elm$url$Url$Parser$top),
+					A2(
+					$elm$url$Url$Parser$map,
+					$elm$core$Maybe$Just,
+					A2(
+						$elm$url$Url$Parser$slash,
+						$elm$url$Url$Parser$s('posts'),
+						$elm$url$Url$Parser$string))
+				]))));
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -7784,41 +7747,17 @@ var $author$project$Main$init = F3(
 				$author$project$Main$Model,
 				key,
 				url,
-				$author$project$Main$Home(_Utils_Tuple0),
+				$author$project$Main$Error,
 				$author$project$Main$isPhone(userAgent)));
 	});
-var $author$project$Main$HomeMsg = function (a) {
-	return {$: 'HomeMsg', a: a};
-};
-var $author$project$Main$ProjectsMsg = function (a) {
-	return {$: 'ProjectsMsg', a: a};
-};
-var $elm$core$Platform$Sub$map = _Platform_map;
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Home$subscriptions = function (_v0) {
-	return $elm$core$Platform$Sub$none;
-};
-var $author$project$Projects$subscriptions = function (_v0) {
-	return $elm$core$Platform$Sub$none;
-};
 var $author$project$Main$subscriptions = function (model) {
 	var _v0 = model.page;
-	switch (_v0.$) {
-		case 'Home':
-			var homeModel = _v0.a;
-			return A2(
-				$elm$core$Platform$Sub$map,
-				$author$project$Main$HomeMsg,
-				$author$project$Home$subscriptions(homeModel));
-		case 'Blog':
-			return $elm$core$Platform$Sub$none;
-		default:
-			var projectsModel = _v0.a;
-			return A2(
-				$elm$core$Platform$Sub$map,
-				$author$project$Main$ProjectsMsg,
-				$author$project$Projects$subscriptions(projectsModel));
+	if (_v0.$ === 'Blog') {
+		return $elm$core$Platform$Sub$none;
+	} else {
+		return $elm$core$Platform$Sub$none;
 	}
 };
 var $elm$browser$Browser$Navigation$load = _Browser_load;
@@ -11263,14 +11202,6 @@ var $author$project$Blog$update = F2(
 				}
 		}
 	});
-var $author$project$Home$update = F2(
-	function (_v0, _v1) {
-		return _Utils_Tuple2(_Utils_Tuple0, $elm$core$Platform$Cmd$none);
-	});
-var $author$project$Projects$update = F2(
-	function (_v0, _v1) {
-		return _Utils_Tuple2(_Utils_Tuple0, $elm$core$Platform$Cmd$none);
-	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var _v0 = _Utils_Tuple2(msg, model.page);
@@ -11297,25 +11228,7 @@ var $author$project$Main$update = F2(
 						model,
 						$elm$browser$Browser$Navigation$load(href));
 				}
-			case 'HomeMsg':
-				if (_v0.b.$ === 'Home') {
-					var homeMsg = _v0.a.a;
-					var homeModel = _v0.b.a;
-					return A3(
-						$elm$core$Tuple$mapBoth,
-						function (newHomeModel) {
-							return _Utils_update(
-								model,
-								{
-									page: $author$project$Main$Home(newHomeModel)
-								});
-						},
-						$elm$core$Platform$Cmd$map($author$project$Main$HomeMsg),
-						A2($author$project$Home$update, homeMsg, homeModel));
-				} else {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'BlogMsg':
+			default:
 				if (_v0.b.$ === 'Blog') {
 					var blogMsg = _v0.a.a;
 					var blogModel = _v0.b.a;
@@ -11333,39 +11246,7 @@ var $author$project$Main$update = F2(
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
-			default:
-				if (_v0.b.$ === 'Projects') {
-					var projectsMsg = _v0.a.a;
-					var projectsModel = _v0.b.a;
-					return A3(
-						$elm$core$Tuple$mapBoth,
-						function (newProjectsModel) {
-							return _Utils_update(
-								model,
-								{
-									page: $author$project$Main$Projects(newProjectsModel)
-								});
-						},
-						$elm$core$Platform$Cmd$map($author$project$Main$ProjectsMsg),
-						A2($author$project$Projects$update, projectsMsg, projectsModel));
-				} else {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
 		}
-	});
-var $author$project$Navbar$Horizontal = {$: 'Horizontal'};
-var $author$project$Navbar$Vertical = {$: 'Vertical'};
-var $author$project$Main$getNavbarDir = function (model) {
-	return model.isPhone ? $author$project$Navbar$Horizontal : $author$project$Navbar$Vertical;
-};
-var $author$project$Main$mapDocumentBody = F2(
-	function (f, _v0) {
-		var title = _v0.title;
-		var body = _v0.body;
-		return {
-			body: f(body),
-			title: title
-		};
 	});
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -11376,22 +11257,17 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			$elm$json$Json$Encode$string(string));
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $author$project$Navbar$directionAttr = function (direction) {
-	if (direction.$ === 'Horizontal') {
-		return A2($elm$html$Html$Attributes$attribute, 'horizontal', '');
-	} else {
-		return A2($elm$html$Html$Attributes$attribute, 'vertical', '');
-	}
-};
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $author$project$Links$myGithub = 'https://www.github.com/yonatan-reicher';
-var $author$project$Navbar$items = _List_fromArray(
-	[
-		{iconPath: 'images/icons/home.svg', link: '#', name: 'Home'},
-		{iconPath: 'images/icons/projects.svg', link: '#/projects', name: 'Projects'},
-		{iconPath: 'images/icons/blog.svg', link: '#/blog', name: 'Thoughts'},
-		{iconPath: 'images/icons/github.svg', link: $author$project$Links$myGithub, name: 'Github'}
-	]);
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
+var $elm$html$Html$main_ = _VirtualDom_node('main');
+var $elm$time$Time$posixToMillis = function (_v0) {
+	var millis = _v0.a;
+	return millis;
+};
+var $elm$core$List$sortBy = _List_sortBy;
+var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$html$Html$Attributes$href = function (url) {
 	return A2(
@@ -11399,90 +11275,6 @@ var $elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
-var $elm$html$Html$img = _VirtualDom_node('img');
-var $elm$html$Html$Attributes$src = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'src',
-		_VirtualDom_noJavaScriptOrHtmlUri(url));
-};
-var $elm$html$Html$Attributes$target = $elm$html$Html$Attributes$stringProperty('target');
-var $author$project$Navbar$viewItem = function (_v0) {
-	var name = _v0.name;
-	var link = _v0.link;
-	var iconPath = _v0.iconPath;
-	var t = A2($elm$core$String$startsWith, '#', link) ? '_self' : '_blank';
-	return A2(
-		$elm$html$Html$a,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('item'),
-				$elm$html$Html$Attributes$href(link),
-				$elm$html$Html$Attributes$target(t)
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$img,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('icon'),
-						$elm$html$Html$Attributes$src(iconPath)
-					]),
-				_List_Nil),
-				$elm$html$Html$text(name)
-			]));
-};
-var $author$project$Navbar$row = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('items')
-		]),
-	A2($elm$core$List$map, $author$project$Navbar$viewItem, $author$project$Navbar$items));
-var $author$project$Navbar$navbar = function (_v0) {
-	var direction = _v0.direction;
-	var onTopOf = _v0.onTopOf;
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('navbar'),
-				$author$project$Navbar$directionAttr(direction)
-			]),
-		_List_fromArray(
-			[
-				$author$project$Navbar$row,
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('on-top-of')
-					]),
-				onTopOf)
-			]));
-};
-var $author$project$Main$mapDocument = F2(
-	function (f, _v0) {
-		var title = _v0.title;
-		var body = _v0.body;
-		return {
-			body: A2(
-				$elm$core$List$map,
-				$elm$html$Html$map(f),
-				body),
-			title: title
-		};
-	});
-var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
-var $elm$html$Html$main_ = _VirtualDom_node('main');
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$time$Time$posixToMillis = function (_v0) {
-	var millis = _v0.a;
-	return millis;
-};
-var $elm$core$List$sortBy = _List_sortBy;
-var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $elm$html$Html$li = _VirtualDom_node('li');
 var $elm$time$Time$Apr = {$: 'Apr'};
 var $elm$time$Time$Aug = {$: 'Aug'};
@@ -11778,7 +11570,6 @@ var $author$project$Blog$viewPostFooter = function (post) {
 };
 var $elm$html$Html$Attributes$datetime = _VirtualDom_attribute('datetime');
 var $elm$html$Html$header = _VirtualDom_node('header');
-var $elm$html$Html$p = _VirtualDom_node('p');
 var $author$project$Blog$posixToMonthString = F2(
 	function (zone, posix) {
 		var _v0 = A2($elm$time$Time$toMonth, zone, posix);
@@ -11913,556 +11704,54 @@ var $author$project$Blog$view = function (model) {
 				$author$project$Blog$viewContent(model)
 			]));
 };
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $author$project$Home$bottomDisclaimer = function () {
-	var fixed = false;
-	return A2(
-		$elm$html$Html$span,
-		fixed ? _List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'position', 'fixed'),
-				A2($elm$html$Html$Attributes$style, 'bottom', '10'),
-				A2($elm$html$Html$Attributes$style, 'max-width', 'inherit')
-			]) : _List_Nil,
-		_List_fromArray(
-			[
-				$elm$html$Html$text('\r\n            This site is old.\r\n            Most things here are not up to date.\r\n            ')
-			]));
-}();
-var $elm$html$Html$em = _VirtualDom_node('em');
-var $elm$html$Html$address = _VirtualDom_node('address');
-var $author$project$Links$myInstagram = 'https://www.instagram.com/yonatan.reicher';
-var $author$project$Home$openInNewTab = $elm$html$Html$Attributes$target('_blank');
-var $author$project$Home$items = function () {
-	var bold = $elm$html$Html$span(
-		_List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
-			]));
-	return _List_fromArray(
-		[
-			A2(
-			$elm$html$Html$span,
-			_List_Nil,
-			_List_fromArray(
-				[
-					bold(
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Most')
-						])),
-					$elm$html$Html$text(' of my code is on '),
-					A2(
-					$elm$html$Html$a,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$href($author$project$Links$myGithub),
-							$author$project$Home$openInNewTab
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('github')
-						])),
-					$elm$html$Html$text('.')
-				])),
-			A2(
-			$elm$html$Html$span,
-			_List_Nil,
-			_List_fromArray(
-				[
-					bold(
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Sometimes')
-						])),
-					$elm$html$Html$text(' I write and put it '),
-					A2(
-					$elm$html$Html$a,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$href('#/blog')
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('here')
-						])),
-					$elm$html$Html$text('.')
-				])),
-			A2(
-			$elm$html$Html$span,
-			_List_Nil,
-			_List_fromArray(
-				[
-					bold(
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Talk')
-						])),
-					$elm$html$Html$text(' to me on instagram '),
-					A2(
-					$elm$html$Html$a,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$href($author$project$Links$myInstagram),
-							$author$project$Home$openInNewTab
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('@yonatan.reicher')
-						])),
-					$elm$html$Html$text('.')
-				])),
-			A2(
-			$elm$html$Html$span,
-			_List_Nil,
-			_List_fromArray(
-				[
-					bold(
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Contact')
-						])),
-					$elm$html$Html$text(' me at '),
-					A2(
-					$elm$html$Html$address,
-					_List_fromArray(
-						[
-							A2($elm$html$Html$Attributes$style, 'display', 'inline')
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('yony252525@gmail.com')
-						])),
-					$elm$html$Html$text('.')
-				]))
-		]);
-}();
-var $elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
-};
-var $author$project$Home$myBullets = A2(
-	$elm$html$Html$ul,
-	_List_Nil,
-	A2(
-		$elm$core$List$map,
-		A2(
-			$elm$core$Basics$composeL,
-			$elm$html$Html$li(_List_Nil),
-			$elm$core$List$singleton),
-		$author$project$Home$items));
-var $author$project$Home$mainContent = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('home')
-		]),
-	_List_fromArray(
-		[
-			A2(
-			$elm$html$Html$h1,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$elm$html$Html$text('Jonathan Reicher')
-				])),
-			A2(
-			$elm$html$Html$img,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('me-img'),
-					$elm$html$Html$Attributes$src('images/me.png')
-				]),
-			_List_Nil),
-			A2(
-			$elm$html$Html$p,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$elm$html$Html$text('\r\n            Hello! I\'m Jonathan Reicher, or maybe Yonatan Reicher, and this is\r\n            my site. I make compilers, software and sometimes art.\r\n            ')
-				])),
-			$author$project$Home$myBullets,
-			A2(
-			$elm$html$Html$p,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$elm$html$Html$text('\r\n            Currently I currently working under Shachar Itzaki at The Technion\r\n            for my MSc in Computer Science on Lean 4 and the humans that use it.\r\n            ')
-				])),
-			A2(
-			$elm$html$Html$h2,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$elm$html$Html$text('teaching')
-				])),
-			A2(
-			$elm$html$Html$p,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$elm$html$Html$text('I am TA-ing '),
-					A2(
-					$elm$html$Html$em,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Selected Topics In Formal Proofs ')
-						])),
-					$elm$html$Html$text('under Yuval Filmus. '),
-					$elm$html$Html$text('I have previously TA-ed '),
-					A2(
-					$elm$html$Html$em,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Programming Languages ')
-						])),
-					$elm$html$Html$text('and had the pleasure of sharing my excitement for ML and '),
-					$elm$html$Html$text('the displeasure of helping students understand SML/NJ '),
-					$elm$html$Html$text('error messages.')
-				])),
-			A2(
-			$elm$html$Html$p,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$elm$html$Html$text('\r\n            In the past I have also taught an advanced software engineering\r\n            class for high-schoolers at Ort Guttman School for a year, and have mentored\r\n            first-year students in C-programming at a high-school program called\r\n            Magshimim.\r\n            ')
-				])),
-			$author$project$Home$bottomDisclaimer
-		]));
-var $author$project$Home$view = function (_v0) {
-	return {
-		body: _List_fromArray(
-			[$author$project$Home$mainContent]),
-		title: 'Jonathan Reicher λ'
-	};
-};
-var $elm$html$Html$br = _VirtualDom_node('br');
-var $elm$html$Html$h3 = _VirtualDom_node('h3');
-var $author$project$Projects$viewProject = function (_v0) {
-	var name = _v0.name;
-	var description = _v0.description;
-	var link = _v0.link;
-	var picturePath = _v0.picturePath;
-	var date = _v0.date;
-	return A2(
-		$elm$html$Html$li,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('project')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$a,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$href(link)
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$h3,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('project-title')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(name)
-							]))
-					])),
-				function () {
-				if (picturePath.$ === 'Just') {
-					var path = picturePath.a;
-					return A2(
-						$elm$html$Html$a,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$href(link),
-								$elm$html$Html$Attributes$target('blank')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$img,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('project-image'),
-										$elm$html$Html$Attributes$src(path)
-									]),
-								_List_Nil)
-							]));
-				} else {
-					return $elm$html$Html$text('');
-				}
-			}(),
-				A2(
-				$elm$html$Html$p,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('project-description')
-					]),
-				description),
-				A2(
-				$elm$html$Html$p,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('project-date')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(date)
-					]))
-			]));
-};
-var $author$project$Projects$viewProjects = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('section'),
-			$elm$html$Html$Attributes$class('projects')
-		]),
-	_List_fromArray(
-		[
-			A2(
-			$elm$html$Html$h2,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('section-title')
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text('Projects')
-				])),
-			A2(
-			$elm$html$Html$ul,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('projects-list')
-				]),
-			_List_fromArray(
-				[
-					$author$project$Projects$viewProject(
-					{
-						date: '2022',
-						description: _List_fromArray(
-							[
-								$elm$html$Html$text('\r\n                        A simple, yet powerful, machine learning library for\r\n                        python. Made with love, with my friend, \r\n                        '),
-								A2(
-								$elm$html$Html$a,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$href('https://github.com/galord123')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Gal')
-									])),
-								$elm$html$Html$text('\r\n                        , For the Magshimim project.\r\n                        ')
-							]),
-						link: 'https://gitlab.com/affogato/affogato',
-						name: 'Affogato',
-						picturePath: $elm$core$Maybe$Just('images/affogato.png')
-					}),
-					$author$project$Projects$viewProject(
-					{
-						date: '2023-12-18',
-						description: _List_fromArray(
-							[
-								$elm$html$Html$text('\r\n                        A simple demo implementation of the Wave Function\r\n                        Collapse algorithm to generate an interesting looking\r\n                        town!\r\n                        Made in C# with MonoGame.\r\n                        ')
-							]),
-						link: 'https://github.com/yonatan-reicher/wave-function-collapse/',
-						name: 'Wave Function Collapse',
-						picturePath: $elm$core$Maybe$Just('images/wave-function-collapse.png')
-					}),
-					$author$project$Projects$viewProject(
-					{
-						date: '2023-10-27',
-						description: _List_fromArray(
-							[
-								$elm$html$Html$text('A simple character controller to test out phaser.js')
-							]),
-						link: 'https://yonatan-reicher.github.io/phaser-character-test/',
-						name: 'Character Controller Test',
-						picturePath: $elm$core$Maybe$Just('images/phaser-character-test.png')
-					}),
-					$author$project$Projects$viewProject(
-					{
-						date: '2023-02-24',
-						description: _List_fromArray(
-							[
-								$elm$html$Html$text('\r\n                        Major redesign for the website of the fauclty of\r\n                        computer science in the Technion. Made with love, in\r\n                        about a weekend. A must for every student in the\r\n                        faculty! (Works on both\r\n                        '),
-								A2(
-								$elm$html$Html$a,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$href('https://chrome.google.com/webstore/detail/gr%20%20-redesign/iaagdkjkkpiiollookginpcjapbhjfli')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Chrome')
-									])),
-								$elm$html$Html$text(' and '),
-								A2(
-								$elm$html$Html$a,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$href('https://addons.mozilla.org/en-US/firefox/addon/gr-redesign/')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Firefox')
-									])),
-								$elm$html$Html$text(').')
-							]),
-						link: 'https://addons.mozilla.org/en-US/firefox/addon/gr-redesign/',
-						name: 'GR++ Redesign',
-						picturePath: $elm$core$Maybe$Just('images/grpp.jpg')
-					}),
-					$author$project$Projects$viewProject(
-					{
-						date: '2019',
-						description: _List_fromArray(
-							[
-								$elm$html$Html$text('\r\n                        A C-Style language that complies to human-readable\r\n                        X86 assembly for TASM\r\n                        ')
-							]),
-						link: 'https://github.com/yonatan-reicher/AB',
-						name: 'AB',
-						picturePath: $elm$core$Maybe$Just('images/ab.png')
-					}),
-					$author$project$Projects$viewProject(
-					{
-						date: '2021-01-18',
-						description: _List_fromArray(
-							[
-								A2(
-								$elm$html$Html$p,
-								_List_Nil,
-								_List_fromArray(
-									[
-										$elm$html$Html$text('\r\n                            2d simulation of blob creatures. They have\r\n                            color-based sight, and can move, eat, and fight.\r\n                            ')
-									])),
-								A2(
-								$elm$html$Html$p,
-								_List_Nil,
-								_List_fromArray(
-									[
-										A2(
-										$elm$html$Html$ul,
-										_List_Nil,
-										_List_fromArray(
-											[
-												A2(
-												$elm$html$Html$li,
-												_List_Nil,
-												_List_fromArray(
-													[
-														$elm$html$Html$text('\r\n                                Implemented using Rust and Raylib.\r\n                                ')
-													])),
-												A2(
-												$elm$html$Html$li,
-												_List_Nil,
-												_List_fromArray(
-													[
-														$elm$html$Html$text('\r\n                                Collision detection implemented by me with the\r\n                                sweep and prune algorithm.\r\n                                ')
-													]))
-											]))
-									]))
-							]),
-						link: 'https://github.com/yonatan-reicher/blobs',
-						name: 'Blobs',
-						picturePath: $elm$core$Maybe$Just('images/blobs.jpg')
-					}),
-					$author$project$Projects$viewProject(
-					{
-						date: '2022-01-28',
-						description: _List_fromArray(
-							[
-								$elm$html$Html$text('\r\n                        Putting stuff on the internet is fun, and also - really\r\n                        embarrassing.\r\n                        '),
-								A2($elm$html$Html$br, _List_Nil, _List_Nil),
-								A2($elm$html$Html$br, _List_Nil, _List_Nil),
-								$elm$html$Html$text('\r\n                        I made this site to put my projects on display, to\r\n                        practice some code, and to get over a fear of putting\r\n                        my work out there.\r\n                        ')
-							]),
-						link: '#',
-						name: 'This Site',
-						picturePath: $elm$core$Maybe$Nothing
-					})
-				])),
-			A2(
-			$elm$html$Html$p,
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$style, 'text-align', 'center')
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text('\r\n                As you might have noticed, all of these are old. One day I\'ll update this site.\r\n                The rest of my projects are on\r\n                '),
-					A2(
-					$elm$html$Html$a,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$href($author$project$Links$myGithub)
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('github')
-						])),
-					$elm$html$Html$text('.')
-				]))
-		]));
-var $author$project$Projects$view = function (_v0) {
-	return {
-		body: _List_fromArray(
-			[$author$project$Projects$viewProjects]),
-		title: 'Jonathan Reicher | Projects'
-	};
-};
 var $author$project$Main$viewContent = function (model) {
 	var _v0 = model.page;
-	switch (_v0.$) {
-		case 'Home':
-			var homeModel = _v0.a;
-			return A2(
-				$author$project$Main$mapDocument,
-				$author$project$Main$HomeMsg,
-				$author$project$Home$view(homeModel));
-		case 'Blog':
-			var blogModel = _v0.a;
-			return {
-				body: _List_fromArray(
-					[
-						A2(
-						$elm$html$Html$map,
-						$author$project$Main$BlogMsg,
-						$author$project$Blog$view(blogModel))
-					]),
-				title: 'Jonathan Reicher | Blog'
-			};
-		default:
-			var projectsModel = _v0.a;
-			return A2(
-				$author$project$Main$mapDocument,
-				$author$project$Main$ProjectsMsg,
-				$author$project$Projects$view(projectsModel));
+	if (_v0.$ === 'Blog') {
+		var blogModel = _v0.a;
+		return {
+			body: _List_fromArray(
+				[
+					A2(
+					$elm$html$Html$map,
+					$author$project$Main$BlogMsg,
+					$author$project$Blog$view(blogModel))
+				]),
+			title: 'Jonathan Reicher | Blog'
+		};
+	} else {
+		return {
+			body: _List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('error')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$h1,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text('404: Page Not Found')
+								])),
+							A2(
+							$elm$html$Html$p,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text('The page you are looking for does not exist.')
+								]))
+						]))
+				]),
+			title: 'Page Not Found'
+		};
 	}
 };
 var $author$project$Main$view = function (model) {
-	return A2(
-		$author$project$Main$mapDocumentBody,
-		function (content) {
-			return _List_fromArray(
-				[
-					$author$project$Navbar$navbar(
-					{
-						direction: $author$project$Main$getNavbarDir(model),
-						onTopOf: content
-					})
-				]);
-		},
-		$author$project$Main$viewContent(model));
+	return $author$project$Main$viewContent(model);
 };
 var $author$project$Main$main = $elm$browser$Browser$application(
 	{init: $author$project$Main$init, onUrlChange: $author$project$Main$UrlChanged, onUrlRequest: $author$project$Main$LinkClicked, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
