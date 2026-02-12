@@ -1,7 +1,7 @@
 # About This Project
 
 This repository is my personal website. Built with Elm, because I love
-functional programming. Check it out [right here](https://yonatan-reicher.github.io/site/)!
+functional programming. Check it out [right here](https://yonatan-reicher.github.io/blog/)!
 
 ## Running Locally
 
@@ -16,7 +16,8 @@ Now navigate to `localhost:8000` in your browser and you should see the site!
 
 ## Building
 
-For building you need Elm 0.19. Just run `make` and the site will be ready.
+For building you need Elm 0.19, and make. Just run `make` and the site will be
+ready.
 
 ## Adding a Blog Post
 
