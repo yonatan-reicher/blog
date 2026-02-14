@@ -285,13 +285,13 @@ pageTitle { currentPost } =
     case currentPost of
         Just (Loaded { post }) -> "Thoughts | " ++ post.title
         Just Loading -> "Thoughts | …"
-        Just (LoadError _) -> "Thoughts | Error"
+        Just (LoadError _) -> "Thoughts | Error!"
         Nothing -> "Thoughts"
 
 viewHeader : Html Msg
 viewHeader =
     header [ class "header" ]
-        [ h1 [ class "site-title" ] [ text "Code, CS & Life" ]
+        [ h1 [ class "site-title" ] [ text "Thoughts" ]
         , nav [ class "nav" ]
             [ a [ href "?", onClick NavigateToHome ] [ text "Home" ]
             -- , a [ href "?page=about", onClick NavigateToAbout ] [ text "About" ]
