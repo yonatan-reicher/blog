@@ -164,9 +164,15 @@ init { userAgent } url key =
 
 parseUrl : Url -> Route
 parseUrl url =
-    let queryParser = Url.Parser.query <| Url.Parser.Query.string "post"
+    let base =
+            Url.Parser.oneOf
+                [ Url.Parser.map () Url.Parser.top
+                , Url.Parser.map (\_ -> ()) Url.Parser.string
+                ]
+        query = Url.Parser.Query.string "post"
+        parser = Url.Parser.map (\_ slug -> slug) <| base <?> query
     in
-    case Url.Parser.parse queryParser url of
+    case Url.Parser.parse parser url of
         Just (Just slug) -> PostPage slug
         Just Nothing -> Home
         Nothing -> BadRoute

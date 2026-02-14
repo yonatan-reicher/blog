@@ -6670,10 +6670,69 @@ var $author$project$Main$BadRoute = {$: 2};
 var $author$project$Main$PostPage = function (a) {
 	return {$: 1, a: a};
 };
+var $elm$url$Url$Parser$Parser = $elm$core$Basics$identity;
 var $elm$url$Url$Parser$State = F5(
 	function (visited, unvisited, params, frag, value) {
 		return {y: frag, z: params, x: unvisited, q: value, C: visited};
 	});
+var $elm$url$Url$Parser$mapState = F2(
+	function (func, _v0) {
+		var visited = _v0.C;
+		var unvisited = _v0.x;
+		var params = _v0.z;
+		var frag = _v0.y;
+		var value = _v0.q;
+		return A5(
+			$elm$url$Url$Parser$State,
+			visited,
+			unvisited,
+			params,
+			frag,
+			func(value));
+	});
+var $elm$url$Url$Parser$map = F2(
+	function (subValue, _v0) {
+		var parseArg = _v0;
+		return function (_v1) {
+			var visited = _v1.C;
+			var unvisited = _v1.x;
+			var params = _v1.z;
+			var frag = _v1.y;
+			var value = _v1.q;
+			return A2(
+				$elm$core$List$map,
+				$elm$url$Url$Parser$mapState(value),
+				parseArg(
+					A5($elm$url$Url$Parser$State, visited, unvisited, params, frag, subValue)));
+		};
+	});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $elm$url$Url$Parser$oneOf = function (parsers) {
+	return function (state) {
+		return A2(
+			$elm$core$List$concatMap,
+			function (_v0) {
+				var parser = _v0;
+				return parser(state);
+			},
+			parsers);
+	};
+};
 var $elm$url$Url$Parser$getFirstMatch = function (states) {
 	getFirstMatch:
 	while (true) {
@@ -6789,7 +6848,6 @@ var $elm$url$Url$Parser$parse = F2(
 					url.am,
 					$elm$core$Basics$identity)));
 	});
-var $elm$url$Url$Parser$Parser = $elm$core$Basics$identity;
 var $elm$url$Url$Parser$query = function (_v0) {
 	var queryParser = _v0;
 	return function (_v1) {
@@ -6811,6 +6869,57 @@ var $elm$url$Url$Parser$query = function (_v0) {
 			]);
 	};
 };
+var $elm$url$Url$Parser$slash = F2(
+	function (_v0, _v1) {
+		var parseBefore = _v0;
+		var parseAfter = _v1;
+		return function (state) {
+			return A2(
+				$elm$core$List$concatMap,
+				parseAfter,
+				parseBefore(state));
+		};
+	});
+var $elm$url$Url$Parser$questionMark = F2(
+	function (parser, queryParser) {
+		return A2(
+			$elm$url$Url$Parser$slash,
+			parser,
+			$elm$url$Url$Parser$query(queryParser));
+	});
+var $elm$url$Url$Parser$custom = F2(
+	function (tipe, stringToSomething) {
+		return function (_v0) {
+			var visited = _v0.C;
+			var unvisited = _v0.x;
+			var params = _v0.z;
+			var frag = _v0.y;
+			var value = _v0.q;
+			if (!unvisited.b) {
+				return _List_Nil;
+			} else {
+				var next = unvisited.a;
+				var rest = unvisited.b;
+				var _v2 = stringToSomething(next);
+				if (!_v2.$) {
+					var nextValue = _v2.a;
+					return _List_fromArray(
+						[
+							A5(
+							$elm$url$Url$Parser$State,
+							A2($elm$core$List$cons, next, visited),
+							rest,
+							params,
+							frag,
+							value(nextValue))
+						]);
+				} else {
+					return _List_Nil;
+				}
+			}
+		};
+	});
+var $elm$url$Url$Parser$string = A2($elm$url$Url$Parser$custom, 'STRING', $elm$core$Maybe$Just);
 var $elm$url$Url$Parser$Internal$Parser = $elm$core$Basics$identity;
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -6844,10 +6953,31 @@ var $elm$url$Url$Parser$Query$string = function (key) {
 			}
 		});
 };
+var $elm$url$Url$Parser$top = function (state) {
+	return _List_fromArray(
+		[state]);
+};
 var $author$project$Main$parseUrl = function (url) {
-	var queryParser = $elm$url$Url$Parser$query(
-		$elm$url$Url$Parser$Query$string('post'));
-	var _v0 = A2($elm$url$Url$Parser$parse, queryParser, url);
+	var query = $elm$url$Url$Parser$Query$string('post');
+	var base = $elm$url$Url$Parser$oneOf(
+		_List_fromArray(
+			[
+				A2($elm$url$Url$Parser$map, 0, $elm$url$Url$Parser$top),
+				A2(
+				$elm$url$Url$Parser$map,
+				function (_v3) {
+					return 0;
+				},
+				$elm$url$Url$Parser$string)
+			]));
+	var parser = A2(
+		$elm$url$Url$Parser$map,
+		F2(
+			function (_v2, slug) {
+				return slug;
+			}),
+		A2($elm$url$Url$Parser$questionMark, base, query));
+	var _v0 = A2($elm$url$Url$Parser$parse, parser, url);
 	if (!_v0.$) {
 		if (!_v0.a.$) {
 			var slug = _v0.a.a;
