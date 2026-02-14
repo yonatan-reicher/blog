@@ -519,11 +519,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.Y.I === region.ag.I)
+	if (region.Y.H === region.ag.H)
 	{
-		return 'on line ' + region.Y.I;
+		return 'on line ' + region.Y.H;
 	}
-	return 'on lines ' + region.Y.I + ' through ' + region.ag.I;
+	return 'on lines ' + region.Y.H + ' through ' + region.ag.H;
 }
 
 
@@ -4005,7 +4005,7 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.M) && (_VirtualDom_doc.title = title = doc.M);
+				(title !== doc.L) && (_VirtualDom_doc.title = title = doc.L);
 			});
 		}
 	);
@@ -5701,7 +5701,7 @@ var $author$project$Main$Html = 0;
 var $author$project$Main$Markdown = 1;
 var $author$project$Main$Post = F6(
 	function (slug, title, date, category, excerpt, fileType) {
-		return {R: category, Q: date, ai: excerpt, T: fileType, J: slug, M: title};
+		return {R: category, P: date, ai: excerpt, T: fileType, I: slug, L: title};
 	});
 var $elm$json$Json$Decode$array = _Json_decodeArray;
 var $elm$json$Json$Decode$decodeString = _Json_runOnString;
@@ -6591,7 +6591,7 @@ var $author$project$Main$findPostBySlug = F2(
 				A2(
 					$elm$core$List$filter,
 					function (p) {
-						return _Utils_eq(p.J, slug);
+						return _Utils_eq(p.I, slug);
 					},
 					$elm$core$Array$toList(posts)));
 		} else {
@@ -6656,7 +6656,7 @@ var $author$project$Main$loadPostWithFormat = function (post) {
 	return $elm$http$Http$get(
 		{
 			aj: $elm$http$Http$expectString($author$project$Main$LoadedPost),
-			aW: 'posts/' + (post.J + extension)
+			aW: 'posts/' + (post.I + extension)
 		});
 };
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
@@ -6995,62 +6995,13 @@ var $author$project$Main$postUrl = function (slug) {
 };
 var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $elm$core$List$sortBy = _List_sortBy;
-var $elm$url$Url$addPort = F2(
-	function (maybePort, starter) {
-		if (maybePort.$ === 1) {
-			return starter;
-		} else {
-			var port_ = maybePort.a;
-			return starter + (':' + $elm$core$String$fromInt(port_));
-		}
-	});
-var $elm$url$Url$addPrefixed = F3(
-	function (prefix, maybeSegment, starter) {
-		if (maybeSegment.$ === 1) {
-			return starter;
-		} else {
-			var segment = maybeSegment.a;
-			return _Utils_ap(
-				starter,
-				_Utils_ap(prefix, segment));
-		}
-	});
-var $elm$url$Url$toString = function (url) {
-	var http = function () {
-		var _v0 = url.aG;
-		if (!_v0) {
-			return 'http://';
-		} else {
-			return 'https://';
-		}
-	}();
-	return A3(
-		$elm$url$Url$addPrefixed,
-		'#',
-		url.am,
-		A3(
-			$elm$url$Url$addPrefixed,
-			'?',
-			url.aH,
-			_Utils_ap(
-				A2(
-					$elm$url$Url$addPort,
-					url.az,
-					_Utils_ap(http, url.aq)),
-				url.ax)));
-};
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 0:
 				if (!msg.a.$) {
 					var url = msg.a.a;
-					return _Utils_Tuple2(
-						model,
-						A2(
-							$elm$browser$Browser$Navigation$pushUrl,
-							model.H,
-							$elm$url$Url$toString(url)));
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var href = msg.a.a;
 					return _Utils_Tuple2(
@@ -7102,7 +7053,7 @@ var $author$project$Main$update = F2(
 									{
 										s: $elm$core$Maybe$Just(
 											$author$project$Main$Loaded(
-												{P: content, A: post}))
+												{O: content, A: post}))
 									}),
 								$author$project$Ports$onViewPost(0));
 						} else {
@@ -7128,12 +7079,12 @@ var $author$project$Main$update = F2(
 					model,
 					A2(
 						$elm$browser$Browser$Navigation$pushUrl,
-						model.H,
+						model.Q,
 						$author$project$Main$postUrl(slug)));
 			case 5:
 				return _Utils_Tuple2(
 					model,
-					A2($elm$browser$Browser$Navigation$pushUrl, model.H, $author$project$Main$homeUrl));
+					A2($elm$browser$Browser$Navigation$pushUrl, model.Q, $author$project$Main$homeUrl));
 			default:
 				var result = msg.a;
 				if (!result.$) {
@@ -7143,7 +7094,7 @@ var $author$project$Main$update = F2(
 							A2(
 								$elm$core$List$sortBy,
 								function (post) {
-									return post.Q;
+									return post.P;
 								},
 								$elm$core$Array$toList(posts))));
 					var newModel = _Utils_update(
@@ -7193,7 +7144,7 @@ var $author$project$Main$init = F3(
 		var initialModel = {
 			s: $elm$core$Maybe$Nothing,
 			at: $author$project$Main$isPhone(userAgent),
-			H: key,
+			Q: key,
 			v: $author$project$Main$Loading,
 			w: $author$project$Main$Home
 		};
@@ -7229,7 +7180,7 @@ var $author$project$Main$pageTitle = function (_v0) {
 		switch (currentPost.a.$) {
 			case 1:
 				var post = currentPost.a.a.A;
-				return 'Thoughts | ' + post.M;
+				return 'Thoughts | ' + post.L;
 			case 0:
 				var _v2 = currentPost.a;
 				return 'Thoughts | …';
@@ -7336,7 +7287,7 @@ var $author$project$Main$viewPostCard = function (post) {
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text(post.Q)
+								$elm$html$Html$text(post.P)
 							]))
 					])),
 				A2(
@@ -7352,13 +7303,13 @@ var $author$project$Main$viewPostCard = function (post) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$href(
-								$author$project$Main$postUrl(post.J)),
+								$author$project$Main$postUrl(post.I)),
 								$elm$html$Html$Events$onClick(
-								$author$project$Main$NavigateToPost(post.J))
+								$author$project$Main$NavigateToPost(post.I))
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text(post.M)
+								$elm$html$Html$text(post.L)
 							]))
 					])),
 				A2(
@@ -7469,7 +7420,7 @@ var $elm_explorations$markdown$Markdown$toHtmlWith = _Markdown_toHtml;
 var $author$project$MyMarkdown$parse = function (text) {
 	return function (content) {
 		return $elm$core$Result$Ok(
-			{P: content});
+			{O: content});
 	}(
 		A3(
 			$elm_explorations$markdown$Markdown$toHtmlWith,
@@ -10904,7 +10855,7 @@ var $hecrj$html_parser$Html$Parser$run = function (str) {
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
 var $author$project$MyMarkdown$toHtml = function (_v0) {
-	var content = _v0.P;
+	var content = _v0.O;
 	return A2($elm$html$Html$map, $elm$core$Basics$never, content);
 };
 var $elm$virtual_dom$VirtualDom$node = function (tag) {
@@ -10949,7 +10900,7 @@ var $hecrj$html_parser$Html$Parser$Util$toVirtualDomEach = function (node) {
 var $author$project$Main$renderPostContent = function (postContent) {
 	var _v0 = postContent.A.T;
 	if (!_v0) {
-		var _v1 = $hecrj$html_parser$Html$Parser$run(postContent.P);
+		var _v1 = $hecrj$html_parser$Html$Parser$run(postContent.O);
 		if (!_v1.$) {
 			var nodes = _v1.a;
 			return A2(
@@ -10969,7 +10920,7 @@ var $author$project$Main$renderPostContent = function (postContent) {
 					]));
 		}
 	} else {
-		var _v2 = $author$project$MyMarkdown$parse(postContent.P);
+		var _v2 = $author$project$MyMarkdown$parse(postContent.O);
 		if (!_v2.$) {
 			var markdown = _v2.a;
 			return $author$project$MyMarkdown$toHtml(markdown);
@@ -11014,7 +10965,7 @@ var $author$project$Main$viewPostPage = function (model) {
 									_List_Nil,
 									_List_fromArray(
 										[
-											$elm$html$Html$text(postContent.A.M)
+											$elm$html$Html$text(postContent.A.L)
 										])),
 									A2(
 									$elm$html$Html$div,
@@ -11042,7 +10993,7 @@ var $author$project$Main$viewPostPage = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(postContent.A.Q)
+													$elm$html$Html$text(postContent.A.P)
 												]))
 										]))
 								])),
@@ -11267,7 +11218,7 @@ var $author$project$Main$view = function (model) {
 						$author$project$Main$viewFooter
 					]))
 			]),
-		M: $author$project$Main$pageTitle(model)
+		L: $author$project$Main$pageTitle(model)
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$application(
