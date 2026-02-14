@@ -7235,7 +7235,7 @@ var $author$project$Main$viewPostCard = function (post) {
 						$elm$html$Html$a,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$href('?page=post/' + post.C),
+								$elm$html$Html$Attributes$href('?post=' + post.C),
 								$elm$html$Html$Events$onClick(
 								$author$project$Main$NavigateToPost(post.C))
 							]),

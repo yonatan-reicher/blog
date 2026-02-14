@@ -331,7 +331,7 @@ viewPostCard post =
             ]
         , h3 [ class "post-title" ]
             [ a 
-                [ href ("?page=post/" ++ post.slug)
+                [ href ("?post=" ++ post.slug)
                 , onClick (NavigateToPost post.slug)
                 ] 
                 [ text post.title ]
