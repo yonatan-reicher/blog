@@ -10,14 +10,14 @@ I love pure functional programming. Check it out
 .
 ├── build.sh         # Builds the website
 ├── src/
+│   ├── style.css    # Stylesheets for the app
 │   └── Main.elm     # Main Elm application
 ├── posts/           # Blog posts in Markdown
 │   ├── *.md
 │   └── *.html
 ├── build/           # Build artifacts
 ├── posts.json       # List of all posts
-├── index.html       # Entry point
-└── style.css        # Styles
+└── index.html       # Entry point
 ```
 
 ## Running Locally
