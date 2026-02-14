@@ -5,6 +5,12 @@ module MyMarkdown exposing
     , toHtml
     )
 
+{- Markdown parsing wrapper with custom newline handling.
+
+Fixes paragraph wrapping issues where single newlines in source text
+incorrectly create new paragraphs in rendered output.
+-}
+
 import Markdown as M
 import Html exposing (Html)
 import Regex
@@ -91,6 +97,7 @@ parse text =
     |> Ok
 
 
+{-| Convert parsed Markdown to Html -}
 toHtml : Markdown -> Html msg
 toHtml (Markdown { content }) =
     content

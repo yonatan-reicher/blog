@@ -58,6 +58,7 @@ type LoadResult a
 
 type alias Content = String
 
+{-| Post metadata from posts.json -}
 type alias Post =
     { slug : String
     , title : String
@@ -69,15 +70,18 @@ type alias Post =
 
 type alias Posts = Array Post
 
+{-| Supported post file formats -}
 type FileType
     = Html
     | Markdown
 
+{-| Post metadata combined with its content -}
 type alias PostContent =
     { post : Post
     , content : String
     }
 
+{-| Convert Result to LoadResult -}
 loadResultFromResult : Result Http.Error a -> LoadResult a
 loadResultFromResult result =
     case result of
@@ -86,6 +90,7 @@ loadResultFromResult result =
         Err error ->
             LoadError error
 
+{-| Find a post by slug in loaded posts -}
 findPostBySlug : LoadResult Posts -> String -> Maybe Post
 findPostBySlug loadResult slug =
     case loadResult of
@@ -96,12 +101,15 @@ findPostBySlug loadResult slug =
         _ ->
             Nothing
 
+{-| Generate URL for a post -}
 postUrl : String -> String
 postUrl slug = "?post=" ++ slug
 
+{-| Home page URL -}
 homeUrl : String
 homeUrl = "?"
 
+{-| Detect if user agent is a mobile device -}
 isPhone : String -> Bool
 isPhone userAgent =
     let 
@@ -123,6 +131,7 @@ isPhone userAgent =
 
 -- INIT
 
+{-| Fetch all posts from posts.json -}
 fetchPosts : Cmd Msg
 fetchPosts =
     let
@@ -162,6 +171,7 @@ init { userAgent } url key =
 
 -- URL PARSING
 
+{-| Parse URL into Route. Extracts "post" query parameter for post pages. -}
 parseUrl : Url -> Route
 parseUrl url =
     let base =
@@ -206,7 +216,7 @@ update msg model =
                     case findPostBySlug model.posts slug of
                         Just post ->
                             ( { model | route = route, currentPost = Just Loading }
-                            , loadPostWithFormat post
+                            , loadPost post
                             )
                         Nothing ->
                             ( { model | route = route }, Cmd.none )
@@ -255,13 +265,13 @@ update msg model =
                         newModel =
                             { model | posts = Loaded sortedPosts }
                         
-                        -- If we're on a post page, try to load that post now
+                        -- If we're on a post page when posts arrive, load that post now
                         (updatedModel, cmd) = case model.route of
                             PostPage slug ->
                                 case findPostBySlug newModel.posts slug of
                                     Just post ->
                                         ( { newModel | currentPost = Just Loading }
-                                        , loadPostWithFormat post
+                                        , loadPost post
                                         )
                                     Nothing ->
                                         ( newModel, Cmd.none )
@@ -276,8 +286,8 @@ update msg model =
 
 -- HTTP
 
-loadPostWithFormat : Post -> Cmd Msg
-loadPostWithFormat post =
+loadPost : Post -> Cmd Msg
+loadPost post =
     let
         extension = 
             case post.fileType of
