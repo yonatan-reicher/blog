@@ -1,12 +1,13 @@
 #!/bin/bash
 set -e
 
-USAGE = "USAGE: build.sh [debug]"
+USAGE="USAGE: build.sh [debug]"
 
 # Calculate flags
-FLAGS = '--optimize'
-if [[ $1 = 'debug' ]]; then
-    FLAGS = '--debug'
+if [[ $1 = "" ]]; then
+    FLAGS='--optimize'
+elif [[ $1 = 'debug' ]]; then
+    FLAGS='--debug'
 else
     echo "Invalid argument $1"
     echo $USAGE
