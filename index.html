@@ -1,46 +1,76 @@
-<html>
-    <head>
-        <meta charset="utf-8">
-        <!-- Fixes media queries not working on mobile devices -->
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <!-- My stylesheet -->
-        <link rel="stylesheet" href="src/style.css">
-
-        <!-- highlight.js stuff -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/stackoverflow-dark.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
-        <!-- Individual highlight.js languages -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/languages/python.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/languages/c.min.js"></script>
-    </head>
-
-    <body>
-        <script src="build/elm.js"></script>
-        <script>
-            var app = Elm.Main.init({
-                flags: {
-                    userAgent: navigator.userAgent.toLowerCase(),
-                },
-            });
-            app.ports.highlightAll.subscribe(() => {
-                window.requestAnimationFrame(() => {
-                    hljs.highlightAll();
-                    document.querySelectorAll('pre code').forEach((block) => {
-                        block.innerHTML = block.innerHTML.trim();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code, CS & Life</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Highlight.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app"></div>
+    
+    <!-- Highlight.js with common languages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/elm.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="elm.js"></script>
+    <script>
+        // Function to highlight all code blocks
+        function highlightCodeBlocks() {
+            document.querySelectorAll('pre code').forEach((block) => {
+                // Only highlight if not already highlighted
+                if (!block.classList.contains('hljs')) {
+                    // elm-explorations/markdown adds 'lang-*' classes
+                    // but highlight.js expects 'language-*' classes
+                    // Convert lang-* to language-* for compatibility
+                    block.classList.forEach((className) => {
+                        if (className.startsWith('lang-')) {
+                            const language = className.substring(5);
+                            block.classList.add('language-' + language);
+                        }
                     });
-                });
+                    
+                    hljs.highlightElement(block);
+                }
             });
-            app.ports.fixScriptTags.subscribe(() => {
-                window.requestAnimationFrame(() => {
-                    document.querySelectorAll('[script]').forEach(el => {
-                        el.hidden = true;
-                        const newEl = document.createElement('script');
-                        newEl.innerHTML = el.getAttribute('script');
-                        document.body.appendChild(newEl);
-                    });
-                });
+        }
+
+        // Initial highlighting
+        setTimeout(highlightCodeBlocks, 100);
+
+        // Watch for DOM changes to highlight dynamically loaded content
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.addedNodes.length) {
+                    setTimeout(highlightCodeBlocks, 50);
+                }
             });
-        </script>
-    </body>
+        });
+
+        // Start observing the app container
+        observer.observe(document.getElementById('app'), {
+            childList: true,
+            subtree: true
+        });
+
+        var app = Elm.Main.init({
+            node: document.getElementById('app')
+        });
+    </script>
+</body>
 </html>
