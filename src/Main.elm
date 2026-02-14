@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Array exposing (Array)
 import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
@@ -8,12 +9,12 @@ import Html.Events exposing (onClick)
 import Html.Parser
 import Html.Parser.Util
 import Http
-import Markdown
+import Json.Decode as D
 import Url exposing (Url)
 import Url.Parser exposing (Parser, (<?>))
 import Url.Parser.Query
-import Json.Decode as D
-import Array exposing (Array)
+
+import MyMarkdown as Markdown
 import Ports
 
 
@@ -372,14 +373,12 @@ renderPostContent postContent =
                 div [ class "error" ] [ text "Failed to parse HTML content" ]
     else
         -- Render markdown
-        Markdown.toHtmlWith 
-            { githubFlavored = Just { tables = True, breaks = False }
-            , defaultHighlighting = Nothing
-            , sanitize = False
-            , smartypants = True
-            }
-            []
-            postContent.content
+        case Markdown.parse postContent.content of
+            Ok markdown ->
+                Markdown.toHtml markdown
+            
+            Err _ ->
+                div [ class "error" ] [ text "Failed to parse markdown content" ]
 
 viewAboutPage : Html Msg
 viewAboutPage =
