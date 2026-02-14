@@ -192,11 +192,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         LinkClicked (Browser.Internal url) ->
-            ( model, Nav.pushUrl model.key (Url.toString url) )
-        
+            ( model, Cmd.none )
+
         LinkClicked (Browser.External href) ->
             ( model, Nav.load href )
-        
+
         UrlChanged url ->
             let
                 route = parseUrl url
