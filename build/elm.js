@@ -519,11 +519,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.Y.J === region.ag.J)
+	if (region.Y.I === region.ag.I)
 	{
-		return 'on line ' + region.Y.J;
+		return 'on line ' + region.Y.I;
 	}
-	return 'on lines ' + region.Y.J + ' through ' + region.ag.J;
+	return 'on lines ' + region.Y.I + ' through ' + region.ag.I;
 }
 
 
@@ -5701,7 +5701,7 @@ var $author$project$Main$Html = 0;
 var $author$project$Main$Markdown = 1;
 var $author$project$Main$Post = F6(
 	function (slug, title, date, category, excerpt, fileType) {
-		return {R: category, Q: date, ai: excerpt, T: fileType, C: slug, M: title};
+		return {R: category, Q: date, ai: excerpt, T: fileType, J: slug, M: title};
 	});
 var $elm$json$Json$Decode$array = _Json_decodeArray;
 var $elm$json$Json$Decode$decodeString = _Json_runOnString;
@@ -6524,6 +6524,39 @@ var $author$project$Main$fetchPosts = function () {
 			aW: 'posts.json'
 		});
 }();
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$String$toLower = _String_toLower;
+var $author$project$Main$isPhone = function (userAgent) {
+	var phoneUserAgents = _List_fromArray(
+		['android', 'webos', 'iphone', 'ipad', 'ipod', 'blackberry', 'iemobile', 'opera mini', 'windows phone']);
+	var lowerUserAgent = $elm$core$String$toLower(userAgent);
+	return A2(
+		$elm$core$List$any,
+		function (agent) {
+			return A2($elm$core$String$contains, agent, lowerUserAgent);
+		},
+		phoneUserAgents);
+};
 var $author$project$Main$LoadError = function (a) {
 	return {$: 2, a: a};
 };
@@ -6540,6 +6573,30 @@ var $elm$core$List$filter = F2(
 				}),
 			_List_Nil,
 			list);
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Main$findPostBySlug = F2(
+	function (loadResult, slug) {
+		if (loadResult.$ === 1) {
+			var posts = loadResult.a;
+			return $elm$core$List$head(
+				A2(
+					$elm$core$List$filter,
+					function (p) {
+						return _Utils_eq(p.J, slug);
+					},
+					$elm$core$Array$toList(posts)));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
 	});
 var $elm$core$Array$fromListHelp = F3(
 	function (list, nodeList, nodeListSize) {
@@ -6576,15 +6633,7 @@ var $elm$core$Array$fromList = function (list) {
 		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
 	}
 };
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
+var $author$project$Main$homeUrl = '?';
 var $elm$browser$Browser$Navigation$load = _Browser_load;
 var $author$project$Main$LoadedPost = function (a) {
 	return {$: 2, a: a};
@@ -6596,24 +6645,20 @@ var $elm$http$Http$expectString = function (toMsg) {
 		$elm$http$Http$resolve($elm$core$Result$Ok));
 };
 var $author$project$Main$loadPostWithFormat = function (post) {
-	var extension = (!post.T) ? '.html' : '.md';
+	var extension = function () {
+		var _v0 = post.T;
+		if (!_v0) {
+			return '.html';
+		} else {
+			return '.md';
+		}
+	}();
 	return $elm$http$Http$get(
 		{
 			aj: $elm$http$Http$expectString($author$project$Main$LoadedPost),
-			aW: 'posts/' + (post.C + extension)
+			aW: 'posts/' + (post.J + extension)
 		});
 };
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (!maybe.$) {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
-var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$json$Json$Encode$null = _Json_encodeNull;
 var $author$project$Ports$onViewPost = _Platform_outgoingPort(
@@ -6627,7 +6672,7 @@ var $author$project$Main$PostPage = function (a) {
 };
 var $elm$url$Url$Parser$State = F5(
 	function (visited, unvisited, params, frag, value) {
-		return {x: frag, y: params, w: unvisited, r: value, D: visited};
+		return {y: frag, z: params, x: unvisited, q: value, C: visited};
 	});
 var $elm$url$Url$Parser$getFirstMatch = function (states) {
 	getFirstMatch:
@@ -6637,12 +6682,12 @@ var $elm$url$Url$Parser$getFirstMatch = function (states) {
 		} else {
 			var state = states.a;
 			var rest = states.b;
-			var _v1 = state.w;
+			var _v1 = state.x;
 			if (!_v1.b) {
-				return $elm$core$Maybe$Just(state.r);
+				return $elm$core$Maybe$Just(state.q);
 			} else {
 				if ((_v1.a === '') && (!_v1.b.b)) {
-					return $elm$core$Maybe$Just(state.r);
+					return $elm$core$Maybe$Just(state.q);
 				} else {
 					var $temp$states = rest;
 					states = $temp$states;
@@ -6748,11 +6793,11 @@ var $elm$url$Url$Parser$Parser = $elm$core$Basics$identity;
 var $elm$url$Url$Parser$query = function (_v0) {
 	var queryParser = _v0;
 	return function (_v1) {
-		var visited = _v1.D;
-		var unvisited = _v1.w;
-		var params = _v1.y;
-		var frag = _v1.x;
-		var value = _v1.r;
+		var visited = _v1.C;
+		var unvisited = _v1.x;
+		var params = _v1.z;
+		var frag = _v1.y;
+		var value = _v1.q;
 		return _List_fromArray(
 			[
 				A5(
@@ -6766,40 +6811,6 @@ var $elm$url$Url$Parser$query = function (_v0) {
 			]);
 	};
 };
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
-	});
-var $elm$url$Url$Parser$slash = F2(
-	function (_v0, _v1) {
-		var parseBefore = _v0;
-		var parseAfter = _v1;
-		return function (state) {
-			return A2(
-				$elm$core$List$concatMap,
-				parseAfter,
-				parseBefore(state));
-		};
-	});
-var $elm$url$Url$Parser$questionMark = F2(
-	function (parser, queryParser) {
-		return A2(
-			$elm$url$Url$Parser$slash,
-			parser,
-			$elm$url$Url$Parser$query(queryParser));
-	});
 var $elm$url$Url$Parser$Internal$Parser = $elm$core$Basics$identity;
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -6833,14 +6844,8 @@ var $elm$url$Url$Parser$Query$string = function (key) {
 			}
 		});
 };
-var $elm$url$Url$Parser$top = function (state) {
-	return _List_fromArray(
-		[state]);
-};
 var $author$project$Main$parseUrl = function (url) {
-	var queryParser = A2(
-		$elm$url$Url$Parser$questionMark,
-		$elm$url$Url$Parser$top,
+	var queryParser = $elm$url$Url$Parser$query(
 		$elm$url$Url$Parser$Query$string('post'));
 	var _v0 = A2($elm$url$Url$Parser$parse, queryParser, url);
 	if (!_v0.$) {
@@ -6854,6 +6859,9 @@ var $author$project$Main$parseUrl = function (url) {
 	} else {
 		return $author$project$Main$BadRoute;
 	}
+};
+var $author$project$Main$postUrl = function (slug) {
+	return '?post=' + slug;
 };
 var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $elm$core$List$sortBy = _List_sortBy;
@@ -6911,7 +6919,7 @@ var $author$project$Main$update = F2(
 						model,
 						A2(
 							$elm$browser$Browser$Navigation$pushUrl,
-							model.I,
+							model.H,
 							$elm$url$Url$toString(url)));
 				} else {
 					var href = msg.a.a;
@@ -6924,75 +6932,47 @@ var $author$project$Main$update = F2(
 				var route = $author$project$Main$parseUrl(url);
 				if (route.$ === 1) {
 					var slug = route.a;
-					var maybePost = function () {
-						var _v3 = model.A;
-						if (_v3.$ === 1) {
-							var posts = _v3.a;
-							return $elm$core$List$head(
-								A2(
-									$elm$core$List$filter,
-									function (p) {
-										return _Utils_eq(p.C, slug);
-									},
-									$elm$core$Array$toList(posts)));
-						} else {
-							return $elm$core$Maybe$Nothing;
-						}
-					}();
-					if (!maybePost.$) {
-						var post = maybePost.a;
+					var _v2 = A2($author$project$Main$findPostBySlug, model.v, slug);
+					if (!_v2.$) {
+						var post = _v2.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
-									p: $elm$core$Maybe$Just($author$project$Main$Loading),
-									v: route
+									s: $elm$core$Maybe$Just($author$project$Main$Loading),
+									w: route
 								}),
 							$author$project$Main$loadPostWithFormat(post));
 					} else {
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{v: route}),
+								{w: route}),
 							$elm$core$Platform$Cmd$none);
 					}
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{v: route}),
+							{w: route}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 2:
 				if (!msg.a.$) {
 					var content = msg.a.a;
-					var _v4 = model.v;
-					if (_v4.$ === 1) {
-						var slug = _v4.a;
-						var postData = function () {
-							var _v6 = model.A;
-							if (_v6.$ === 1) {
-								var posts = _v6.a;
-								return $elm$core$List$head(
-									A2(
-										$elm$core$List$filter,
-										function (p) {
-											return _Utils_eq(p.C, slug);
-										},
-										$elm$core$Array$toList(posts)));
-							} else {
-								return $elm$core$Maybe$Nothing;
-							}
-						}();
-						if (!postData.$) {
-							var post = postData.a;
+					var _v3 = model.w;
+					if (_v3.$ === 1) {
+						var slug = _v3.a;
+						var _v4 = A2($author$project$Main$findPostBySlug, model.v, slug);
+						if (!_v4.$) {
+							var post = _v4.a;
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
 									{
-										p: $elm$core$Maybe$Just(
+										s: $elm$core$Maybe$Just(
 											$author$project$Main$Loaded(
-												{P: content, z: post}))
+												{P: content, A: post}))
 									}),
 								$author$project$Ports$onViewPost(0));
 						} else {
@@ -7007,7 +6987,7 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								p: $elm$core$Maybe$Just(
+								s: $elm$core$Maybe$Just(
 									$author$project$Main$LoadError(err))
 							}),
 						$elm$core$Platform$Cmd$none);
@@ -7016,63 +6996,62 @@ var $author$project$Main$update = F2(
 				var slug = msg.a;
 				return _Utils_Tuple2(
 					model,
-					A2($elm$browser$Browser$Navigation$pushUrl, model.I, '?post=' + slug));
+					A2(
+						$elm$browser$Browser$Navigation$pushUrl,
+						model.H,
+						$author$project$Main$postUrl(slug)));
 			case 5:
 				return _Utils_Tuple2(
 					model,
-					A2($elm$browser$Browser$Navigation$pushUrl, model.I, '?'));
+					A2($elm$browser$Browser$Navigation$pushUrl, model.H, $author$project$Main$homeUrl));
 			default:
 				var result = msg.a;
 				if (!result.$) {
 					var posts = result.a;
+					var sortedPosts = $elm$core$Array$fromList(
+						$elm$core$List$reverse(
+							A2(
+								$elm$core$List$sortBy,
+								function (post) {
+									return post.Q;
+								},
+								$elm$core$Array$toList(posts))));
 					var newModel = _Utils_update(
 						model,
 						{
-							A: $author$project$Main$Loaded(
-								$elm$core$Array$fromList(
-									$elm$core$List$reverse(
-										A2(
-											$elm$core$List$sortBy,
-											function (post) {
-												return post.Q;
-											},
-											$elm$core$Array$toList(posts)))))
+							v: $author$project$Main$Loaded(sortedPosts)
 						});
-					var cmd = function () {
-						var _v8 = model.v;
-						if (_v8.$ === 1) {
-							var slug = _v8.a;
-							return A2(
-								$elm$core$Maybe$withDefault,
-								$elm$core$Platform$Cmd$none,
-								A2(
-									$elm$core$Maybe$map,
-									$author$project$Main$loadPostWithFormat,
-									$elm$core$List$head(
-										A2(
-											$elm$core$List$filter,
-											function (p) {
-												return _Utils_eq(p.C, slug);
-											},
-											$elm$core$Array$toList(posts)))));
+					var _v6 = function () {
+						var _v7 = model.w;
+						if (_v7.$ === 1) {
+							var slug = _v7.a;
+							var _v8 = A2($author$project$Main$findPostBySlug, newModel.v, slug);
+							if (!_v8.$) {
+								var post = _v8.a;
+								return _Utils_Tuple2(
+									_Utils_update(
+										newModel,
+										{
+											s: $elm$core$Maybe$Just($author$project$Main$Loading)
+										}),
+									$author$project$Main$loadPostWithFormat(post));
+							} else {
+								return _Utils_Tuple2(newModel, $elm$core$Platform$Cmd$none);
+							}
 						} else {
-							return $elm$core$Platform$Cmd$none;
+							return _Utils_Tuple2(newModel, $elm$core$Platform$Cmd$none);
 						}
 					}();
-					return _Utils_Tuple2(
-						_Utils_update(
-							newModel,
-							{
-								p: (!_Utils_eq(cmd, $elm$core$Platform$Cmd$none)) ? $elm$core$Maybe$Just($author$project$Main$Loading) : newModel.p
-							}),
-						cmd);
+					var updatedModel = _v6.a;
+					var cmd = _v6.b;
+					return _Utils_Tuple2(updatedModel, cmd);
 				} else {
 					var error = result.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								A: $author$project$Main$LoadError(error)
+								v: $author$project$Main$LoadError(error)
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -7081,7 +7060,13 @@ var $author$project$Main$update = F2(
 var $author$project$Main$init = F3(
 	function (_v0, url, key) {
 		var userAgent = _v0._;
-		var initialModel = {p: $elm$core$Maybe$Nothing, at: false, I: key, A: $author$project$Main$Loading, v: $author$project$Main$Home};
+		var initialModel = {
+			s: $elm$core$Maybe$Nothing,
+			at: $author$project$Main$isPhone(userAgent),
+			H: key,
+			v: $author$project$Main$Loading,
+			w: $author$project$Main$Home
+		};
 		return function (_v1) {
 			var model = _v1.a;
 			var cmd = _v1.b;
@@ -7109,11 +7094,11 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $author$project$Main$pageTitle = function (_v0) {
-	var currentPost = _v0.p;
+	var currentPost = _v0.s;
 	if (!currentPost.$) {
 		switch (currentPost.a.$) {
 			case 1:
-				var post = currentPost.a.a.z;
+				var post = currentPost.a.a.A;
 				return 'Thoughts | ' + post.M;
 			case 0:
 				var _v2 = currentPost.a;
@@ -7125,10 +7110,36 @@ var $author$project$Main$pageTitle = function (_v0) {
 		return 'Thoughts';
 	}
 };
+var $author$project$Main$NavigateToHome = {$: 5};
+var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
 var $elm$html$Html$main_ = _VirtualDom_node('main');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 0, a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$core$Elm$JsArray$map = _JsArray_map;
 var $elm$core$Array$map = F2(
 	function (func, _v0) {
@@ -7157,33 +7168,8 @@ var $elm$core$Array$map = F2(
 var $author$project$Main$NavigateToPost = function (a) {
 	return {$: 4, a: a};
 };
-var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$html$Html$article = _VirtualDom_node('article');
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
-var $elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 0, a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$span = _VirtualDom_node('span');
 var $author$project$Main$viewPostCard = function (post) {
 	return A2(
@@ -7235,9 +7221,10 @@ var $author$project$Main$viewPostCard = function (post) {
 						$elm$html$Html$a,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$href('?post=' + post.C),
+								$elm$html$Html$Attributes$href(
+								$author$project$Main$postUrl(post.J)),
 								$elm$html$Html$Events$onClick(
-								$author$project$Main$NavigateToPost(post.C))
+								$author$project$Main$NavigateToPost(post.J))
 							]),
 						_List_fromArray(
 							[
@@ -7281,6 +7268,23 @@ var $author$project$Main$viewHomePage = function (posts) {
 				$elm$core$Array$toList(
 					A2($elm$core$Array$map, $author$project$Main$viewPostCard, posts)))
 			]));
+};
+var $author$project$Main$httpErrorToString = function (error) {
+	switch (error.$) {
+		case 0:
+			var url = error.a;
+			return 'Bad URL: ' + url;
+		case 1:
+			return 'Request timeout';
+		case 2:
+			return 'Network error';
+		case 3:
+			var status = error.a;
+			return 'Bad status: ' + $elm$core$String$fromInt(status);
+		default:
+			var body = error.a;
+			return 'Bad body: ' + body;
+	}
 };
 var $author$project$MyMarkdown$Markdown = $elm$core$Basics$identity;
 var $elm$core$Basics$not = _Basics_not;
@@ -7573,6 +7577,7 @@ var $elm$parser$Parser$getChompedString = $elm$parser$Parser$Advanced$getChomped
 var $hecrj$html_parser$Html$Parser$isSpaceCharacter = function (c) {
 	return (c === ' ') || ((c === '\t') || ((c === '\n') || ((c === '\u000D') || ((c === '\u000C') || (c === '\u00A0')))));
 };
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$parser$Parser$Problem = function (a) {
 	return {$: 12, a: a};
 };
@@ -7594,7 +7599,6 @@ var $elm$parser$Parser$Advanced$succeed = function (a) {
 	};
 };
 var $elm$parser$Parser$succeed = $elm$parser$Parser$Advanced$succeed;
-var $elm$core$String$toLower = _String_toLower;
 var $hecrj$html_parser$Html$Parser$closingTag = function (name) {
 	var chompName = A2(
 		$elm$parser$Parser$andThen,
@@ -7737,27 +7741,6 @@ var $elm$parser$Parser$Advanced$map = F2(
 	});
 var $elm$parser$Parser$map = $elm$parser$Parser$Advanced$map;
 var $hecrj$html_parser$Html$Parser$comment = A2($elm$parser$Parser$map, $hecrj$html_parser$Html$Parser$Comment, $hecrj$html_parser$Html$Parser$commentString);
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
 var $elm$core$List$member = F2(
 	function (x, xs) {
 		return A2(
@@ -10834,10 +10817,11 @@ var $hecrj$html_parser$Html$Parser$Util$toVirtualDomEach = function (node) {
 	}
 };
 var $author$project$Main$renderPostContent = function (postContent) {
-	if (!postContent.z.T) {
-		var _v0 = $hecrj$html_parser$Html$Parser$run(postContent.P);
-		if (!_v0.$) {
-			var nodes = _v0.a;
+	var _v0 = postContent.A.T;
+	if (!_v0) {
+		var _v1 = $hecrj$html_parser$Html$Parser$run(postContent.P);
+		if (!_v1.$) {
+			var nodes = _v1.a;
 			return A2(
 				$elm$html$Html$div,
 				_List_Nil,
@@ -10855,9 +10839,9 @@ var $author$project$Main$renderPostContent = function (postContent) {
 					]));
 		}
 	} else {
-		var _v1 = $author$project$MyMarkdown$parse(postContent.P);
-		if (!_v1.$) {
-			var markdown = _v1.a;
+		var _v2 = $author$project$MyMarkdown$parse(postContent.P);
+		if (!_v2.$) {
+			var markdown = _v2.a;
 			return $author$project$MyMarkdown$toHtml(markdown);
 		} else {
 			return A2(
@@ -10874,7 +10858,7 @@ var $author$project$Main$renderPostContent = function (postContent) {
 	}
 };
 var $author$project$Main$viewPostPage = function (model) {
-	var _v0 = model.p;
+	var _v0 = model.s;
 	if (!_v0.$) {
 		switch (_v0.a.$) {
 			case 1:
@@ -10900,7 +10884,7 @@ var $author$project$Main$viewPostPage = function (model) {
 									_List_Nil,
 									_List_fromArray(
 										[
-											$elm$html$Html$text(postContent.z.M)
+											$elm$html$Html$text(postContent.A.M)
 										])),
 									A2(
 									$elm$html$Html$div,
@@ -10918,7 +10902,7 @@ var $author$project$Main$viewPostPage = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(postContent.z.R)
+													$elm$html$Html$text(postContent.A.R)
 												])),
 											A2(
 											$elm$html$Html$span,
@@ -10928,7 +10912,7 @@ var $author$project$Main$viewPostPage = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(postContent.z.Q)
+													$elm$html$Html$text(postContent.A.Q)
 												]))
 										]))
 								])),
@@ -10944,7 +10928,7 @@ var $author$project$Main$viewPostPage = function (model) {
 								]))
 						]));
 			case 2:
-				var e = _v0.a.a;
+				var err = _v0.a.a;
 				return A2(
 					$elm$html$Html$div,
 					_List_fromArray(
@@ -10953,7 +10937,9 @@ var $author$project$Main$viewPostPage = function (model) {
 						]),
 					_List_fromArray(
 						[
-							$elm$html$Html$text('Post not found')
+							$elm$html$Html$text('Failed to load post: '),
+							$elm$html$Html$text(
+							$author$project$Main$httpErrorToString(err))
 						]));
 			default:
 				var _v1 = _v0.a;
@@ -10991,10 +10977,10 @@ var $author$project$Main$viewContent = function (model) {
 		_List_fromArray(
 			[
 				function () {
-				var _v0 = model.v;
+				var _v0 = model.w;
 				switch (_v0.$) {
 					case 0:
-						var _v1 = model.A;
+						var _v1 = model.v;
 						switch (_v1.$) {
 							case 1:
 								var posts = _v1.a;
@@ -11026,7 +11012,40 @@ var $author$project$Main$viewContent = function (model) {
 						var slug = _v0.a;
 						return $author$project$Main$viewPostPage(model);
 					default:
-						return $elm$html$Html$text('Bad route');
+						return A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('not-found')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$h2,
+									_List_Nil,
+									_List_fromArray(
+										[
+											$elm$html$Html$text('404 - Page Not Found')
+										])),
+									A2(
+									$elm$html$Html$p,
+									_List_Nil,
+									_List_fromArray(
+										[
+											$elm$html$Html$text('The page you\'re looking for doesn\'t exist.')
+										])),
+									A2(
+									$elm$html$Html$a,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$href($author$project$Main$homeUrl),
+											$elm$html$Html$Events$onClick($author$project$Main$NavigateToHome)
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('Go home')
+										]))
+								]));
 				}
 			}()
 			]));
@@ -11045,10 +11064,20 @@ var $author$project$Main$viewFooter = A2(
 			_List_Nil,
 			_List_fromArray(
 				[
-					$elm$html$Html$text('© 2024 My Code Blog. Built with Elm.')
+					$elm$html$Html$text('Thoughts. Built with '),
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$href('https://github.com/yonatan-reicher/blog')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('Love')
+						])),
+					$elm$html$Html$text('.')
 				]))
 		]));
-var $author$project$Main$NavigateToHome = {$: 5};
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$header = _VirtualDom_node('header');
 var $elm$html$Html$nav = _VirtualDom_node('nav');
@@ -11082,7 +11111,7 @@ var $author$project$Main$viewHeader = A2(
 					$elm$html$Html$a,
 					_List_fromArray(
 						[
-							$elm$html$Html$Attributes$href('?'),
+							$elm$html$Html$Attributes$href($author$project$Main$homeUrl),
 							$elm$html$Html$Events$onClick($author$project$Main$NavigateToHome)
 						]),
 					_List_fromArray(

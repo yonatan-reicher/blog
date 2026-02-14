@@ -17,6 +17,8 @@
     --border-color: #3d332a;
     --code-bg: #1a1410;
     --shadow-color: rgba(0, 0, 0, 0.3);
+    --max-content-width: 800px;
+    --max-home-width: 1200px;
 }
 
 body {
@@ -32,9 +34,8 @@ body {
 .container {
     display: flex;
     flex-direction: column;
-    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0;
 }
 
 /* Header */
@@ -50,6 +51,7 @@ body {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--primary-color);
+    margin: 0 1em;
     margin-bottom: 0.5rem;
     letter-spacing: -0.01em;
 }
@@ -77,9 +79,16 @@ body {
 .content {
     min-height: 70vh;
     margin-bottom: 3rem;
+    padding: 0 16px;
 }
 
 /* Home Page */
+.home {
+    max-width: var(--max-home-width);
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .home h2 {
     font-size: 1.5rem;
     font-weight: 600;
@@ -187,7 +196,7 @@ body {
 
 /* Post Page */
 .post {
-    max-width: 800px;
+    max-width: var(--max-content-width);
     margin: 0 auto;
 }
 
@@ -387,27 +396,6 @@ body {
     color: var(--text-medium);
 }
 
-/* About Page */
-.about {
-    max-width: 700px;
-    margin: 0 auto;
-}
-
-.about h2 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    letter-spacing: -0.01em;
-    color: var(--primary-color);
-}
-
-.about p {
-    font-size: 1rem;
-    line-height: 1.7;
-    margin-bottom: 1.25rem;
-    color: var(--text-medium);
-}
-
 /* Not Found Page */
 .not-found {
     text-align: center;
@@ -490,12 +478,20 @@ body {
     font-weight: 500;
 }
 
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px solid var(--primary-color);
+    transition: all 0.2s ease;
+}
+
+.footer a:hover {
+    color: var(--primary-dark);
+    border-bottom-color: var(--primary-dark);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    .container {
-        padding: 0 16px;
-    }
-
     .header {
         padding: 0.875rem 0;
         margin-bottom: 1.5rem;
@@ -559,14 +555,6 @@ body {
         padding: 1rem;
         margin: 1.25rem -0.25rem;
         border-radius: 6px;
-    }
-
-    .about h2 {
-        font-size: 1.5rem;
-    }
-
-    .about p {
-        font-size: 0.9375rem;
     }
 
     .not-found h2 {

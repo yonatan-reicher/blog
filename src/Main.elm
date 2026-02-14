@@ -34,7 +34,7 @@ main =
 
 -- MODEL
 
-type alias Flags = { userAgent: String }
+type alias Flags = { userAgent : String }
 
 type alias Model =
     { route : Route
@@ -49,6 +49,8 @@ type Route
     | PostPage String
     | BadRoute
 
+-- Represents the state of an asynchronous data fetch
+-- Use this instead of Result when you need to track loading state
 type LoadResult a 
     = Loading
     | Loaded a
@@ -84,6 +86,40 @@ loadResultFromResult result =
         Err error ->
             LoadError error
 
+findPostBySlug : LoadResult Posts -> String -> Maybe Post
+findPostBySlug loadResult slug =
+    case loadResult of
+        Loaded posts ->
+            Array.toList posts
+                |> List.filter (\p -> p.slug == slug)
+                |> List.head
+        _ ->
+            Nothing
+
+postUrl : String -> String
+postUrl slug = "?post=" ++ slug
+
+homeUrl : String
+homeUrl = "?"
+
+isPhone : String -> Bool
+isPhone userAgent =
+    let 
+        phoneUserAgents =
+            [ "android"
+            , "webos"
+            , "iphone"
+            , "ipad"
+            , "ipod"
+            , "blackberry"
+            , "iemobile"
+            , "opera mini"
+            , "windows phone"
+            ]
+        lowerUserAgent = String.toLower userAgent
+    in
+    List.any (\agent -> String.contains agent lowerUserAgent) phoneUserAgents
+
 
 -- INIT
 
@@ -117,7 +153,7 @@ init { userAgent } url key =
             , posts = Loading
             , currentPost = Nothing
             , key = key
-            , isPhone = False -- TODO
+            , isPhone = isPhone userAgent
             }
     in
     initialModel
@@ -128,9 +164,7 @@ init { userAgent } url key =
 
 parseUrl : Url -> Route
 parseUrl url =
-    let
-        queryParser =
-            Url.Parser.top <?> Url.Parser.Query.string "post"
+    let queryParser = Url.Parser.query <| Url.Parser.Query.string "post"
     in
     case Url.Parser.parse queryParser url of
         Just (Just slug) -> PostPage slug
@@ -163,16 +197,7 @@ update msg model =
             in
             case route of
                 PostPage slug ->
-                    let
-                        maybePost = case model.posts of
-                            Loaded posts ->
-                                Array.toList posts
-                                    |> List.filter (\p -> p.slug == slug)
-                                    |> List.head
-                            _ ->
-                                Nothing
-                    in
-                    case maybePost of
+                    case findPostBySlug model.posts slug of
                         Just post ->
                             ( { model | route = route, currentPost = Just Loading }
                             , loadPostWithFormat post
@@ -185,16 +210,7 @@ update msg model =
         LoadedPost (Ok content) ->
             case model.route of
                 PostPage slug ->
-                    let
-                        postData = case model.posts of
-                            Loaded posts ->
-                                Array.toList posts
-                                    |> List.filter (\p -> p.slug == slug)
-                                    |> List.head
-                            _ ->
-                                Nothing
-                    in
-                    case postData of
+                    case findPostBySlug model.posts slug of
                         Just post ->
                             ( { model 
                               | currentPost = Just (Loaded { post = post, content = content })
@@ -211,43 +227,42 @@ update msg model =
         
         NavigateToPost slug ->
             ( model
-            , Nav.pushUrl model.key ("?post=" ++ slug)
+            , Nav.pushUrl model.key (postUrl slug)
             )
         
         NavigateToHome ->
             ( model
-            , Nav.pushUrl model.key "?"
+            , Nav.pushUrl model.key homeUrl
             )
 
         GotPosts result ->
             case result of
                 Ok posts ->
                     let
+                        sortedPosts =
+                            posts
+                            |> Array.toList
+                            |> List.sortBy (\post -> post.date)
+                            |> List.reverse
+                            |> Array.fromList
+                        
                         newModel =
-                            { model
-                            | posts =
-                                posts
-                                |> Array.toList
-                                |> List.sortBy (\post -> post.date)
-                                |> List.reverse
-                                |> Array.fromList
-                                |> Loaded
-                            }
+                            { model | posts = Loaded sortedPosts }
                         
                         -- If we're on a post page, try to load that post now
-                        cmd = case model.route of
+                        (updatedModel, cmd) = case model.route of
                             PostPage slug ->
-                                Array.toList posts
-                                    |> List.filter (\p -> p.slug == slug)
-                                    |> List.head
-                                    |> Maybe.map loadPostWithFormat
-                                    |> Maybe.withDefault Cmd.none
+                                case findPostBySlug newModel.posts slug of
+                                    Just post ->
+                                        ( { newModel | currentPost = Just Loading }
+                                        , loadPostWithFormat post
+                                        )
+                                    Nothing ->
+                                        ( newModel, Cmd.none )
                             _ ->
-                                Cmd.none
+                                ( newModel, Cmd.none )
                     in
-                    ( { newModel | currentPost = if cmd /= Cmd.none then Just Loading else newModel.currentPost }
-                    , cmd
-                    )
+                    ( updatedModel, cmd )
                 Err error ->
                     ( { model | posts = LoadError error }
                     , Cmd.none
@@ -258,7 +273,10 @@ update msg model =
 loadPostWithFormat : Post -> Cmd Msg
 loadPostWithFormat post =
     let
-        extension = if post.fileType == Html then ".html" else ".md"
+        extension = 
+            case post.fileType of
+                Html -> ".html"
+                Markdown -> ".md"
     in
     Http.get
         { url = "posts/" ++ post.slug ++ extension
@@ -293,7 +311,7 @@ viewHeader =
     header [ class "header" ]
         [ h1 [ class "site-title" ] [ text "Thoughts" ]
         , nav [ class "nav" ]
-            [ a [ href "?", onClick NavigateToHome ] [ text "Home" ]
+            [ a [ href homeUrl, onClick NavigateToHome ] [ text "Home" ]
             -- , a [ href "?page=about", onClick NavigateToAbout ] [ text "About" ]
             ]
         ]
@@ -312,7 +330,12 @@ viewContent model =
                         div [ class "error" ] [ text "Failed to load posts" ]
             PostPage slug ->
                 viewPostPage model
-            BadRoute -> text "Bad route"
+            BadRoute ->
+                div [ class "not-found" ]
+                    [ h2 [] [ text "404 - Page Not Found" ]
+                    , p [] [ text "The page you're looking for doesn't exist." ]
+                    , a [ href homeUrl, onClick NavigateToHome ] [ text "Go home" ]
+                    ]
         ]
 
 viewHomePage : Posts -> Html Msg
@@ -331,7 +354,7 @@ viewPostCard post =
             ]
         , h3 [ class "post-title" ]
             [ a 
-                [ href ("?post=" ++ post.slug)
+                [ href (postUrl post.slug)
                 , onClick (NavigateToPost post.slug)
                 ] 
                 [ text post.title ]
@@ -354,8 +377,11 @@ viewPostPage model =
                 , div [ class "post-content" ] 
                     [ renderPostContent postContent ]
                 ]
-        Just (LoadError e) ->
-            div [ class "error" ] [ text "Post not found" ]
+        Just (LoadError err) ->
+            div [ class "error" ] 
+                [ text "Failed to load post: "
+                , text (httpErrorToString err)
+                ]
         Just Loading ->
             div [ class "loading" ] [ text "Loading post..." ]
         Nothing ->
@@ -363,250 +389,44 @@ viewPostPage model =
 
 renderPostContent : PostContent -> Html Msg
 renderPostContent postContent =
-    if postContent.post.fileType == Html then
-        -- Parse and render HTML
-        case Html.Parser.run postContent.content of
-            Ok nodes ->
-                div [] (Html.Parser.Util.toVirtualDom nodes)
-            
-            Err _ ->
-                div [ class "error" ] [ text "Failed to parse HTML content" ]
-    else
-        -- Render markdown
-        case Markdown.parse postContent.content of
-            Ok markdown ->
-                Markdown.toHtml markdown
-            
-            Err _ ->
-                div [ class "error" ] [ text "Failed to parse markdown content" ]
+    case postContent.post.fileType of
+        Html ->
+            -- Parse and render HTML
+            case Html.Parser.run postContent.content of
+                Ok nodes ->
+                    div [] (Html.Parser.Util.toVirtualDom nodes)
+                
+                Err _ ->
+                    div [ class "error" ] 
+                        [ text "Failed to parse HTML content" ]
+        Markdown ->
+            -- Render markdown
+            case Markdown.parse postContent.content of
+                Ok markdown ->
+                    Markdown.toHtml markdown
+                
+                Err _ ->
+                    div [ class "error" ] 
+                        [ text "Failed to parse markdown content" ]
 
-viewAboutPage : Html Msg
-viewAboutPage =
-    div [ class "about" ]
-        [ h2 [] [ text "About Me" ]
-        , p [] [ text "Welcome to my blog where I write about code, computer science, and life." ]
-        , p [] [ text "This blog is built with Elm and hosted on GitHub Pages." ]
-        ]
+httpErrorToString : Http.Error -> String
+httpErrorToString error =
+    case error of
+        Http.BadUrl url -> "Bad URL: " ++ url
+        Http.Timeout -> "Request timeout"
+        Http.NetworkError -> "Network error"
+        Http.BadStatus status -> "Bad status: " ++ String.fromInt status
+        Http.BadBody body -> "Bad body: " ++ body
 
-viewNotFoundPage : Html Msg
-viewNotFoundPage =
-    div [ class "not-found" ]
-        [ h2 [] [ text "404 - Page Not Found" ]
-        , p [] [ text "The page you're looking for doesn't exist." ]
-        , a [ href "?", onClick NavigateToHome ] [ text "Go home" ]
-        ]
+
 
 viewFooter : Html Msg
 viewFooter =
     footer [ class "footer" ]
-        [ p [] [ text "© 2024 My Code Blog. Built with Elm." ]
-        ]
-
-
-{-
-
-type Msg
-    = UrlChanged Url.Url
-    | LinkClicked Browser.UrlRequest
-    | HomeMsg Home.Msg
-    | BlogMsg Blog.Msg
-    | ProjectsMsg Projects.Msg
-
-
-type Route
-    = HomeRoute
-    | BlogRoute (Maybe String)
-    | ProjectsRoute
-
-
-routeParser : Url.Parser.Parser (Route -> a) a
-routeParser =
-    Url.Parser.oneOf
-        [ Url.Parser.top |> Url.Parser.map HomeRoute
-        , Url.Parser.s "blog"
-          </> Url.Parser.oneOf
-            [ Url.Parser.map Nothing Url.Parser.top
-            , Url.Parser.map Just (Url.Parser.s "posts" </> Url.Parser.string)
+        [ p [] 
+            [ text "Thoughts. Built with "
+            , a [ href "https://github.com/yonatan-reicher/blog" ] [ text "Love" ]
+            , text "."
             ]
-          |> Url.Parser.map BlogRoute
-        , Url.Parser.s "projects" |> Url.Parser.map ProjectsRoute
         ]
 
-
-urlToRoute : Url.Url -> Maybe Route
-urlToRoute url = 
-    -- The RealWorld spec treats the fragment like a path.
-    -- This makes it *literally* the path, so we can proceed
-    -- with parsing as if it had been a normal path all along.
-    -- Copied from elm-spa
-    { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }
-    |> Url.Parser.parse routeParser
-
-
-changeRoute : Maybe Route -> Model -> (Model, Cmd Msg)
-changeRoute route model =
-    case route of
-        Nothing -> (model, Cmd.none)
-
-        Just HomeRoute ->
-            ({ model | page = Home () }
-            , Cmd.none
-            )
-
-        Just (BlogRoute maybeFileName) ->
-            Blog.init maybeFileName
-            |> Tuple.mapFirst (\blogModel ->
-                { model | page = Blog blogModel }
-            )
-            |> Tuple.mapSecond (Cmd.map BlogMsg)
-
-
-        Just ProjectsRoute ->
-            ({ model | page = Projects () }
-            , Cmd.none
-            )
-
-
-main : Program Flags Model Msg
-main =
-    Browser.application
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        , onUrlChange = UrlChanged
-        , onUrlRequest = LinkClicked
-        }
-
-
-phoneUserAgents : List String
-phoneUserAgents =
-    [ "Android"
-    , "webOS"
-    , "iPhone"
-    , "iPad"
-    , "iPod"
-    , "BlackBerry"
-    , "IEMobile"
-    , "Opera Mini"
-    , "windows phone"
-    ]
-
-
-isPhone : String -> Bool
-isPhone userAgent =
-    List.any (String.toLower >> String.contains (String.toLower userAgent)) phoneUserAgents
-
-
-init : Flags -> Url.Url -> Nav.Key -> (Model, Cmd Msg)
-init { userAgent } url key =
-    Model key url (Home ()) (isPhone userAgent)
-    |> changeRoute (urlToRoute url)
-
-
-update : Msg -> Model -> (Model, Cmd Msg)
-update msg model =
-    case (msg, model.page) of
-        (UrlChanged url, _) ->
-            changeRoute (urlToRoute url) model
-
-        (LinkClicked request, _) ->
-            case request of
-                Browser.Internal url ->
-                    (model, Nav.pushUrl model.key (Url.toString url))
-
-                Browser.External href ->
-                    (model, Nav.load href)
-
-        (HomeMsg homeMsg, Home homeModel) ->
-            Home.update homeMsg homeModel
-            |> Tuple.mapBoth
-                (\newHomeModel -> { model | page = Home newHomeModel })
-                (Cmd.map HomeMsg)
-
-        (HomeMsg _, _) -> (model, Cmd.none)
-
-        (BlogMsg blogMsg, Blog blogModel) ->
-            Blog.update blogMsg blogModel
-            |> Tuple.mapBoth
-                (\newBlogModel -> { model | page = Blog newBlogModel })
-                (Cmd.map BlogMsg)
-
-        (BlogMsg _, _) -> (model, Cmd.none)
-
-        (ProjectsMsg projectsMsg, Projects projectsModel) ->
-            Projects.update projectsMsg projectsModel
-            |> Tuple.mapBoth
-                (\newProjectsModel -> { model | page = Projects newProjectsModel })
-                (Cmd.map ProjectsMsg)
-
-        (ProjectsMsg _, _) -> (model, Cmd.none)
-
-
-view : Model -> Browser.Document Msg
-view model =
-    model
-    |> viewContent
-    |> mapDocumentBody (\content ->
-        [ navbar
-            { direction = getNavbarDir model
-            , onTopOf = content
-            }
-        ]
-    )
-
-
-getNavbarDir : Model -> Navbar.NavbarDir
-getNavbarDir model =
-    if model.isPhone then Navbar.Horizontal else Navbar.Vertical
-
-
-mapDocumentBody : (List (Html a) -> List (Html b)) -> Document a -> Document b
-mapDocumentBody f { title, body } =
-    { title = title
-    , body = f body
-    }
-
-
-viewContent : Model -> Document Msg
-viewContent model =
-    case model.page of
-        Home homeModel ->
-            Home.view homeModel
-            |> mapDocument HomeMsg
-
-        Blog blogModel ->
-            { title = "Jonathan Reicher | Blog"
-            , body =
-                [ Blog.view blogModel
-                  |> Html.map BlogMsg
-                ]
-            }
-
-        Projects projectsModel ->
-            Projects.view projectsModel
-            |> mapDocument ProjectsMsg
-
-
-mapDocument : (a -> b) -> Document a -> Document b
-mapDocument f { title, body } =
-    { title = title
-    , body = List.map (Html.map f) body
-    }
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    case model.page of
-        Home homeModel ->
-            Home.subscriptions homeModel
-            |> Sub.map HomeMsg
-
-        Blog _ ->
-            Sub.none
-
-        Projects projectsModel ->
-            Projects.subscriptions projectsModel
-            |> Sub.map ProjectsMsg
-
--}
