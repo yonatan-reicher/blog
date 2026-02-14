@@ -34,7 +34,6 @@ type alias Flags = { userAgent: String }
 
 type alias Model =
     { route : Route
-    , key : Nav.Key
     , posts : Maybe (List Post)
     , currentPost : Maybe PostContent
     , loadingPost : Bool
@@ -44,8 +43,8 @@ type alias Model =
 
 type Route
     = Home
-    | Post Post Content
-    | NotFound Post
+    | PostPage String
+    | BadRoute
 
 type alias Content = String
 
@@ -72,19 +71,20 @@ type alias PostContent =
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init { userAgent } url key =
-    let page = parseUrl url
+    let route = parseUrl url
         initialModel =
-            { page = page
+            { route = route
             , posts = Nothing
             , currentPost = Nothing
             , loadingPost = False
             , key = key
+            , isPhone = False -- TODO
             }
     in
-    case page of
-        Post post ->
+    case route of
+        PostPage slug ->
             let
-                maybePost = List.filter (\p -> p.slug == slug) samplePosts
+                maybePost = List.filter (\p -> p.slug == slug) []
                     |> List.head
             in
             case maybePost of
@@ -99,59 +99,16 @@ init { userAgent } url key =
 
 -- URL PARSING
 
-parseUrl : Url -> Page
+parseUrl : Url -> Route
 parseUrl url =
     let
         queryParser =
-            Parser.top <?> Query.string "page"
+            Url.Parser.top <?> Url.Parser.Query.string "post"
     in
-    case Parser.parse queryParser url of
-        Just (Just "about") ->
-            About
-        Just (Just slug) ->
-            if String.startsWith "post/" slug then
-                PostPage (String.dropLeft 5 slug)
-            else
-                NotFound
-        Just Nothing ->
-            Home
-        Nothing ->
-            Home
-
-
--- SAMPLE DATA
-
-samplePosts : List Post
-samplePosts =
-    [ { slug = "welcome-to-my-blog"
-      , title = "Welcome to My Blog"
-      , date = "2024-02-14"
-      , category = "Life"
-      , excerpt = "Starting a new journey of writing about code, computer science, and life."
-      , format = "markdown"
-      }
-    , { slug = "elm-architecture-explained"
-      , title = "The Elm Architecture Explained"
-      , date = "2024-02-10"
-      , category = "Code"
-      , excerpt = "A deep dive into The Elm Architecture and why it's so elegant."
-      , format = "markdown"
-      }
-    , { slug = "algorithms-for-beginners"
-      , title = "Algorithms for Beginners"
-      , date = "2024-02-05"
-      , category = "CS"
-      , excerpt = "Understanding the basics of algorithms and data structures."
-      , format = "markdown"
-      }
-    , { slug = "html-post-example"
-      , title = "HTML Post Example"
-      , date = "2024-02-15"
-      , category = "Code"
-      , excerpt = "An example post written in pure HTML with custom styling and interactive elements."
-      , format = "html"
-      }
-    ]
+    case Url.Parser.parse queryParser url of
+        Just (Just slug) -> PostPage slug
+        Just Nothing -> Home
+        Nothing -> BadRoute
 
 
 -- UPDATE
@@ -162,7 +119,6 @@ type Msg
     | LoadedPost (Result Http.Error String)
     | NavigateToPost String
     | NavigateToHome
-    | NavigateToAbout
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -175,29 +131,29 @@ update msg model =
         
         UrlChanged url ->
             let
-                page = parseUrl url
+                route = parseUrl url
             in
-            case page of
+            case route of
                 PostPage slug ->
                     let
-                        maybePost = List.filter (\p -> p.slug == slug) model.posts
+                        maybePost = List.filter (\p -> p.slug == slug) [] -- TODO
                             |> List.head
                     in
                     case maybePost of
                         Just post ->
-                            ( { model | page = page, loadingPost = True }
+                            ( { model | route = route, loadingPost = True }
                             , loadPostWithFormat post
                             )
                         Nothing ->
-                            ( { model | page = page }, Cmd.none )
+                            ( { model | route = route }, Cmd.none )
                 _ ->
-                    ( { model | page = page }, Cmd.none )
+                    ( { model | route = route }, Cmd.none )
         
         LoadedPost (Ok content) ->
-            case model.page of
+            case model.route of
                 PostPage slug ->
                     let
-                        postData = List.filter (\p -> p.slug == slug) model.posts
+                        postData = List.filter (\p -> p.slug == slug) [] -- TODO
                             |> List.head
                     in
                     case postData of
@@ -218,7 +174,7 @@ update msg model =
         
         NavigateToPost slug ->
             ( model
-            , Nav.pushUrl model.key ("?page=post/" ++ slug)
+            , Nav.pushUrl model.key ("?post=" ++ slug)
             )
         
         NavigateToHome ->
@@ -226,18 +182,12 @@ update msg model =
             , Nav.pushUrl model.key "?"
             )
         
-        NavigateToAbout ->
-            ( model
-            , Nav.pushUrl model.key "?page=about"
-            )
-
-
 -- HTTP
 
 loadPostWithFormat : Post -> Cmd Msg
 loadPostWithFormat post =
     let
-        extension = if post.format == "html" then ".html" else ".md"
+        extension = if post.fileType == Html then ".html" else ".md"
     in
     Http.get
         { url = "posts/" ++ post.slug ++ extension
@@ -249,7 +199,7 @@ loadPostWithFormat post =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = pageTitle model.page
+    { title = pageTitle model
     , body = 
         [ div [ class "container" ]
             [ viewHeader
@@ -259,17 +209,11 @@ view model =
         ]
     }
 
-pageTitle : Page -> String
-pageTitle page =
-    case page of
-        Home ->
-            "Home - My Code Blog"
-        PostPage _ ->
-            "Post - My Code Blog"
-        About ->
-            "About - My Code Blog"
-        NotFound ->
-            "Not Found - My Code Blog"
+pageTitle : Model -> String
+pageTitle { currentPost } =
+    case currentPost of
+        Nothing -> "Thoughts"
+        Just { post } -> "Thoughts | " ++ post.title
 
 viewHeader : Html Msg
 viewHeader =
@@ -277,22 +221,19 @@ viewHeader =
         [ h1 [ class "site-title" ] [ text "Code, CS & Life" ]
         , nav [ class "nav" ]
             [ a [ href "?", onClick NavigateToHome ] [ text "Home" ]
-            , a [ href "?page=about", onClick NavigateToAbout ] [ text "About" ]
+            -- , a [ href "?page=about", onClick NavigateToAbout ] [ text "About" ]
             ]
         ]
 
 viewContent : Model -> Html Msg
 viewContent model =
     main_ [ class "content" ]
-        [ case model.page of
+        [ case model.route of
             Home ->
-                viewHomePage model.posts
+                viewHomePage (Maybe.withDefault [] model.posts)
             PostPage slug ->
                 viewPostPage model
-            About ->
-                viewAboutPage
-            NotFound ->
-                viewNotFoundPage
+            BadRoute -> text "Bad route"
         ]
 
 viewHomePage : List Post -> Html Msg
@@ -342,7 +283,7 @@ viewPostPage model =
 
 renderPostContent : PostContent -> Html Msg
 renderPostContent postContent =
-    if postContent.post.format == "html" then
+    if postContent.post.fileType == Html then
         -- Parse and render HTML
         case Html.Parser.run postContent.content of
             Ok nodes ->
