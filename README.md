@@ -49,3 +49,19 @@ single-page site. So it's either this or the ugly hash-based routing).
 
 Blogs are html/markdown documents in the `posts/` directory. Every post
 must be listed in the `posts.json` file.
+
+Script tags have special support. Because Elm does not allow inserting script
+tags, you add script tags in a different way.
+
+Example:
+```html
+<div script="console.log('Hello, World!')"></div>
+```
+will be transformed after the this call into:
+```html
+<div hidden script="console.log('Hello, World!')"></div>
+<script>console.log('Hello, World!')</script>
+```
+
+The reason for using the attribute value instead of the `innerHTML` is to avoid
+having to escape the code, as characters like `<` and `{` are way too common.
