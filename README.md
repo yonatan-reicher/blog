@@ -8,16 +8,16 @@ I love pure functional programming. Check it out
 
 ```
 .
-├── Makefile         # Builds the website
+├── build.sh         # Builds the website
 ├── src/
 │   └── Main.elm     # Main Elm application
 ├── posts/           # Blog posts in Markdown
 │   ├── *.md
 │   └── *.html
+├── build/           # Build artifacts
 ├── posts.json       # List of all posts
 ├── index.html       # Entry point
-├── style.css        # Styles
-└── elm.js           # Compiled Elm code
+└── style.css        # Styles
 ```
 
 ## Running Locally
@@ -33,8 +33,8 @@ Now navigate to `localhost:8000` in your browser and you should see the site!
 
 ## Building
 
-For building you need Elm 0.19, and make. Just run `make` and the site will be
-ready.
+For building you need Elm 0.19, and a shell. Just run `build.sh` and the site
+will be ready.
 
 ## Routing
 
