@@ -71,9 +71,8 @@ type alias PostContent =
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init { userAgent } url key =
-    let route = parseUrl url
-        initialModel =
-            { route = route
+    let initialModel =
+            { route = Home
             , posts = Nothing
             , currentPost = Nothing
             , loadingPost = False
@@ -81,21 +80,8 @@ init { userAgent } url key =
             , isPhone = False -- TODO
             }
     in
-    case route of
-        PostPage slug ->
-            let
-                maybePost = List.filter (\p -> p.slug == slug) []
-                    |> List.head
-            in
-            case maybePost of
-                Just post ->
-                    ( { initialModel | loadingPost = True }
-                    , loadPostWithFormat post
-                    )
-                Nothing ->
-                    ( initialModel, Cmd.none )
-        _ ->
-            ( initialModel, Cmd.none )
+    initialModel
+    |> update (UrlChanged url)
 
 -- URL PARSING
 
