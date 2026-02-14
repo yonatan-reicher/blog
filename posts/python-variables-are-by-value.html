@@ -1,7 +1,7 @@
 <p>
     Lately, I've been doing a lot of Python programming with NumPy.
 </p>
-<img src="./blog/posts/python-variables-are-by-value/views.png">
+<img src="./posts/python-variables-are-by-value/views.png">
 <p>
     One of the cool features of NumPy is that it allows you to create
     <b><em>views</em></b> of arrays. By creating a view, you can read and modify the
@@ -139,7 +139,7 @@ for image, output in zip(images, outputs):
     In Python, all values have reference semantics, but variables cannot be
     referenced.
 </p>
-<img src=".\blog\posts\python-variables-are-by-value\variable-vs-value.png">
+<img src=".\posts\python-variables-are-by-value\variable-vs-value.png">
 <p>
     So if I declare a variable, I can modify it directly, but I cannot
     reference it with another variable.
@@ -159,7 +159,7 @@ int* x_ptr = &a;
     <code>1</code> and <code>x_ptr</code> is referencing the <em>variable</em>
     <code>a</code>.
 </p>
-<img src=".\blog\posts\python-variables-are-by-value\variable-references.png">
+<img src=".\posts\python-variables-are-by-value\variable-references.png">
 <p>
     This is not something that can be achieved in Python.
 </p>
@@ -186,7 +186,7 @@ x[0] += 4
     you think of a list as a pointer, expect both <code>x</code> and
     <code>a</code> are pointers now.
 </p>
-<img src=".\blog\posts\python-variables-are-by-value\lists-as-references.png">
+<img src=".\posts\python-variables-are-by-value\lists-as-references.png">
 <p>
     And this is basically exactly what NumPy does, the views are just values
     that reference the same array.
