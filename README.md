@@ -1,94 +1,51 @@
-# Code, CS & Life - Blog
+# About This Project
 
-A simple, elegant blog built with Elm and hosted on GitHub Pages.
-
-## Features
-
-- ✨ Clean, minimal design
-- 📝 Markdown-based blog posts
-- 🔍 Query parameter-based routing (perfect for GitHub Pages)
-- 🎨 Responsive layout
-- ⚡ Built with Elm for reliability and maintainability
+A static website to host some written thoughts. A blog! Built with Elm, because
+I love pure functional programming. Check it out
+[right here!](https://yonatan-reicher.github.io/blog)
 
 ## Structure
 
 ```
 .
+├── Makefile         # Builds the website
 ├── src/
-│   └── Main.elm          # Main Elm application
-├── posts/                # Blog posts in Markdown
-│   ├── welcome-to-my-blog.md
-│   ├── elm-architecture-explained.md
-│   └── algorithms-for-beginners.md
-├── index.html            # Entry point
-├── style.css             # Styles
-└── elm.js                # Compiled Elm code
+│   └── Main.elm     # Main Elm application
+├── posts/           # Blog posts in Markdown
+│   ├── *.md
+│   └── *.html
+├── posts.json       # List of all posts
+├── index.html       # Entry point
+├── style.css        # Styles
+└── elm.js           # Compiled Elm code
 ```
 
-## Development
+## Running Locally
 
-### Prerequisites
-
-- Elm 0.19.1+
-
-### Building
-
+After cloning the repository, everything should already be set up. Just open up
+a local server and your ready to go. You probably have python installed, so you
+can just run:
 ```bash
-elm make src/Main.elm --output=elm.js --optimize
+python3 -m http.server
 ```
 
-### Local Development
+Now navigate to `localhost:8000` in your browser and you should see the site!
 
-Open `index.html` in your browser or use a simple HTTP server:
+## Building
 
-```bash
-python3 -m http.server 8000
-```
-
-Then visit `http://localhost:8000`
-
-## Adding Blog Posts
-
-1. Create a new `.md` file in the `posts/` directory
-2. Add the post metadata to the `samplePosts` list in `src/Main.elm`:
-
-```elm
-{ slug = "your-post-slug"
-, title = "Your Post Title"
-, date = "2024-02-14"
-, category = "Code"  -- or "CS" or "Life"
-, excerpt = "A brief description..."
-}
-```
-
-3. Recompile: `elm make src/Main.elm --output=elm.js --optimize`
+For building you need Elm 0.19, and make. Just run `make` and the site will be
+ready.
 
 ## Routing
 
-The blog uses query parameters for routing, which works perfectly with GitHub Pages:
+Because this is a single-page site hosted on GitHub, I use query parameters for
+navigation (GitHub hosting only allows having a single domain path host a
+single-page site. So it's either this or the ugly hash-based routing).
 
 - Home: `?` or `?page=home`
-- Blog post: `?page=post/your-post-slug`
-- About: `?page=about`
+- Post: `page=post/<id>`
 
-## Deploying to GitHub Pages
+## Adding a Post
 
-1. Create a new repository on GitHub
-2. Initialize git and add files:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   ```
-3. Push to GitHub:
-   ```bash
-   git branch -M main
-   git remote add origin https://github.com/username/repo-name.git
-   git push -u origin main
-   ```
-4. Go to Settings → Pages → Source → Select "main" branch
-5. Your site will be live at `https://username.github.io/repo-name/`
-
-## License
-
-MIT
+Blogs are html/markdown documents in the `posts/` directory. Every post
+must be listed in the `posts.json` file.
