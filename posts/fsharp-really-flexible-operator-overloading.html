@@ -1,0 +1,115 @@
+<p>
+    This is a little demo I did for a Programming Languages course. Mostly
+    an explanation of how F# advanced features interact with each other, and
+    what kinds of polymorphism you can do with them.
+</p>
+<p>
+    Basically I wanted to prove you could mix operator overloading with 
+    universal polymorphism and sort of blur the lines between them.
+</p>
+<p>
+    The code is hosted <a href="https://github.com/yonatan-reicher/fsharp-polymorphism/blob/main/a.fsx">here on GitHub</a>.
+</p>
+<pre><code style="font-size: 0.85em">
+// F# = ML + .NET
+let f x = x * x
+
+// Just like ML, let bindings *dont* overload (They shadow or err depending on
+// context). However, methods do overload!
+
+//              ==Universal operator overloading==
+
+module Try1 =
+    type Nat = Z | S of Nat
+
+    let rec (+) a b = 
+        match a with Z -> b | S a' -> S (a' + b)
+
+    // This works, but shadows!
+    printfn "Try1"
+    printfn "%A" ((S (S Z)) + S Z)
+    // printfn "%A" (2 + 1) // Type error!
+
+module Try2 =
+    // This is how it's supposed to be done:
+    type Nat = Z | S of Nat with
+        static member (+)(a, b) =
+            match a with Z -> b | S a' -> S (a' + b)
+
+    printfn "Try2"
+    printfn "%A" ((S (S Z)) + (S Z))
+    printfn "%A" (2 + 1)
+    // printfn "%A" ([1; 2] + [3]) // But this does not compile!
+    // Seems silly, right? Why would we expect it to work? Lists do not have
+    // a static member (+). And we cannot add one, because you can't add
+    // members directly to the class.
+
+    // But can we maybe do something about it?
+
+module UnderTheHood =
+    // This is how (+) is actually defined:
+    let inline (+) (a: ^T) (b: ^T) =
+        (^T : (static member (+): ^T * ^T -> ^T) (a, b))
+    // This uses a fancy thing called *static generics*. They are regular
+    // generic type variables, with some superpowers: Like member constraints!
+    // (By my understanding, the under-the-hood difference is that C# emits
+    //  one implementation for each generic function, while F# inlines and
+    //  instances every call to emit different IR. Its like C++ templates
+    //  with ahead-of-time typechecking).
+    
+    // Well, I lied. Actually it's defined more like this: (Not accurate but
+    // almost)
+    let inline (+.) (a: ^T) (b: ^U) =
+        ((^T or ^U) : (static member (+): ^T * ^U -> ^V) (a, b))
+    // You can even look in *different types* in member constraints!
+    
+module Try3 =
+    type Nat = Z | S of Nat with
+        static member (+)(a, b) =
+            match a with Z -> b | S a' -> S (a' + b)
+
+    // Let's shadow the original implementation:
+    type H = 
+        static member (+)(a: int list, b: int list) = List.append a b
+        static member (+)(a: int array, b: int array) = Array.append a b
+
+    let inline (+) (a: ^T) (b: ^U) =
+        ((^T or ^U or H) : (static member (+): ^T * ^U -> ^V) (a, b))
+        
+    printfn "Try3"
+    printfn "%A" ((S (S Z)) + (S Z))
+    // printfn "%A" (2 + 1) // Now this actually doesn't work...
+    printfn "%A" ([1; 2] + [3])
+    
+    // Why doesnt addition on ints work? Int actually doesn't have static
+    // member (+). In the (+) implemented by the library there is a special 
+    // case handled by the compiler that allows certain primitive overloads.
+    // So...
+
+module Try4 =
+    type Nat = Z | S of Nat with
+        static member (+)(a, b) =
+            match a with Z -> b | S a' -> S (a' + b)
+
+    type H = 
+        static member (+)(a: int list, b: int list) = List.append a b
+        static member (+)(a: int array, b: int array) = Array.append a b
+        static member (+)(a: int, b: int) = a + b
+        static member (+)(a: float, b: float) = a + b
+        static member (+)(a: byte, b: byte) = a + b
+        // ...
+
+    let inline (+) (a: ^T) (b: ^U) =
+        ((^T or ^U or H) : (static member (+): ^T * ^U -> ^V) (a, b))
+
+    printfn "Try4"
+    printfn "%A" ((S (S Z)) + (S Z))
+    printfn "%A" (2 + 1)
+    printfn "%A" ([1; 2] + [3])
+
+    // Now all calls to (+) work correctly, are completely type safe, and can
+    // and (+) can be extended either by our program via H or be extended by
+    // users of our code by having their types implement static member (+).
+    // (Also, F# allows custom operator symbols so this is super flexible. F#
+    // really cool)
+</code></pre>
