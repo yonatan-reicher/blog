@@ -12,6 +12,9 @@ import Markdown
 import Url exposing (Url)
 import Url.Parser exposing (Parser, (<?>))
 import Url.Parser.Query
+import Json.Decode as D
+import Array exposing (Array)
+import Ports
 
 
 -- MAIN
@@ -34,9 +37,8 @@ type alias Flags = { userAgent: String }
 
 type alias Model =
     { route : Route
-    , posts : Maybe (List Post)
-    , currentPost : Maybe PostContent
-    , loadingPost : Bool
+    , posts : LoadResult Posts
+    , currentPost : Maybe (LoadResult PostContent)
     , key : Nav.Key
     , isPhone : Bool
     }
@@ -45,6 +47,11 @@ type Route
     = Home
     | PostPage String
     | BadRoute
+
+type LoadResult a 
+    = Loading
+    | Loaded a
+    | LoadError Http.Error
 
 type alias Content = String
 
@@ -57,6 +64,8 @@ type alias Post =
     , fileType : FileType
     }
 
+type alias Posts = Array Post
+
 type FileType
     = Html
     | Markdown
@@ -66,22 +75,53 @@ type alias PostContent =
     , content : String
     }
 
+loadResultFromResult : Result Http.Error a -> LoadResult a
+loadResultFromResult result =
+    case result of
+        Ok value ->
+            Loaded value
+        Err error ->
+            LoadError error
+
 
 -- INIT
+
+fetchPosts : Cmd Msg
+fetchPosts =
+    let
+        decoder =
+            D.array <| D.map6 Post
+                (D.field "slug" D.string)
+                (D.field "title" D.string)
+                (D.field "date" D.string)
+                (D.field "category" D.string)
+                (D.field "excerpt" D.string)
+                (D.field "fileType" fileTypeDecoder)
+        fileTypeDecoder =
+            D.string |> D.andThen (\s ->
+                case s of
+                    "html" -> D.succeed Html
+                    "md" -> D.succeed Markdown
+                    _ -> D.fail <| "'" ++ s ++ "' is not a valid file type, should be either 'html' or 'markdown'")
+    in
+    Http.get
+        { url = "posts.json"
+        , expect = Http.expectJson GotPosts decoder
+        }
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init { userAgent } url key =
     let initialModel =
             { route = Home
-            , posts = Nothing
+            , posts = Loading
             , currentPost = Nothing
-            , loadingPost = False
             , key = key
             , isPhone = False -- TODO
             }
     in
     initialModel
     |> update (UrlChanged url)
+    |> \(model, cmd) -> (model, Cmd.batch [ cmd, fetchPosts ])
 
 -- URL PARSING
 
@@ -103,6 +143,7 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url
     | LoadedPost (Result Http.Error String)
+    | GotPosts (Result Http.Error Posts)
     | NavigateToPost String
     | NavigateToHome
 
@@ -110,10 +151,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         LinkClicked (Browser.Internal url) ->
-            ( model, Cmd.none )
+            ( model, Nav.pushUrl model.key (Url.toString url) )
         
         LinkClicked (Browser.External href) ->
-            ( model, Cmd.none )
+            ( model, Nav.load href )
         
         UrlChanged url ->
             let
@@ -122,12 +163,17 @@ update msg model =
             case route of
                 PostPage slug ->
                     let
-                        maybePost = List.filter (\p -> p.slug == slug) [] -- TODO
-                            |> List.head
+                        maybePost = case model.posts of
+                            Loaded posts ->
+                                Array.toList posts
+                                    |> List.filter (\p -> p.slug == slug)
+                                    |> List.head
+                            _ ->
+                                Nothing
                     in
                     case maybePost of
                         Just post ->
-                            ( { model | route = route, loadingPost = True }
+                            ( { model | route = route, currentPost = Just Loading }
                             , loadPostWithFormat post
                             )
                         Nothing ->
@@ -139,24 +185,28 @@ update msg model =
             case model.route of
                 PostPage slug ->
                     let
-                        postData = List.filter (\p -> p.slug == slug) [] -- TODO
-                            |> List.head
+                        postData = case model.posts of
+                            Loaded posts ->
+                                Array.toList posts
+                                    |> List.filter (\p -> p.slug == slug)
+                                    |> List.head
+                            _ ->
+                                Nothing
                     in
                     case postData of
                         Just post ->
                             ( { model 
-                              | currentPost = Just { post = post, content = content }
-                              , loadingPost = False
+                              | currentPost = Just (Loaded { post = post, content = content })
                               }
-                            , Cmd.none
+                            , Ports.onViewPost ()
                             )
                         Nothing ->
-                            ( { model | loadingPost = False }, Cmd.none )
+                            ( model, Cmd.none )
                 _ ->
-                    ( { model | loadingPost = False }, Cmd.none )
+                    ( model, Cmd.none )
         
-        LoadedPost (Err _) ->
-            ( { model | loadingPost = False }, Cmd.none )
+        LoadedPost (Err err) ->
+            ( { model | currentPost = Just (LoadError err) }, Cmd.none )
         
         NavigateToPost slug ->
             ( model
@@ -167,7 +217,41 @@ update msg model =
             ( model
             , Nav.pushUrl model.key "?"
             )
-        
+
+        GotPosts result ->
+            case result of
+                Ok posts ->
+                    let
+                        newModel =
+                            { model
+                            | posts =
+                                posts
+                                |> Array.toList
+                                |> List.sortBy (\post -> post.date)
+                                |> List.reverse
+                                |> Array.fromList
+                                |> Loaded
+                            }
+                        
+                        -- If we're on a post page, try to load that post now
+                        cmd = case model.route of
+                            PostPage slug ->
+                                Array.toList posts
+                                    |> List.filter (\p -> p.slug == slug)
+                                    |> List.head
+                                    |> Maybe.map loadPostWithFormat
+                                    |> Maybe.withDefault Cmd.none
+                            _ ->
+                                Cmd.none
+                    in
+                    ( { newModel | currentPost = if cmd /= Cmd.none then Just Loading else newModel.currentPost }
+                    , cmd
+                    )
+                Err error ->
+                    ( { model | posts = LoadError error }
+                    , Cmd.none
+                    )
+
 -- HTTP
 
 loadPostWithFormat : Post -> Cmd Msg
@@ -198,8 +282,10 @@ view model =
 pageTitle : Model -> String
 pageTitle { currentPost } =
     case currentPost of
+        Just (Loaded { post }) -> "Thoughts | " ++ post.title
+        Just Loading -> "Thoughts | …"
+        Just (LoadError _) -> "Thoughts | Error"
         Nothing -> "Thoughts"
-        Just { post } -> "Thoughts | " ++ post.title
 
 viewHeader : Html Msg
 viewHeader =
@@ -216,17 +302,23 @@ viewContent model =
     main_ [ class "content" ]
         [ case model.route of
             Home ->
-                viewHomePage (Maybe.withDefault [] model.posts)
+                case model.posts of
+                    Loaded posts ->
+                        viewHomePage posts
+                    Loading ->
+                        div [ class "loading" ] [ text "Loading posts..." ]
+                    LoadError _ ->
+                        div [ class "error" ] [ text "Failed to load posts" ]
             PostPage slug ->
                 viewPostPage model
             BadRoute -> text "Bad route"
         ]
 
-viewHomePage : List Post -> Html Msg
+viewHomePage : Posts -> Html Msg
 viewHomePage posts =
     div [ class "home" ]
         [ h2 [] [ text "Recent Posts" ]
-        , div [ class "posts-list" ] (List.map viewPostCard posts)
+        , div [ class "posts-list" ] (Array.map viewPostCard posts |> Array.toList)
         ]
 
 viewPostCard : Post -> Html Msg
@@ -248,24 +340,25 @@ viewPostCard post =
 
 viewPostPage : Model -> Html Msg
 viewPostPage model =
-    if model.loadingPost then
-        div [ class "loading" ] [ text "Loading post..." ]
-    else
-        case model.currentPost of
-            Just postContent ->
-                article [ class "post" ]
-                    [ div [ class "post-header" ]
-                        [ h2 [] [ text postContent.post.title ]
-                        , div [ class "post-meta" ]
-                            [ span [ class "post-category" ] [ text postContent.post.category ]
-                            , span [ class "post-date" ] [ text postContent.post.date ]
-                            ]
+    case model.currentPost of
+        Just (Loaded postContent) ->
+            article [ class "post" ]
+                [ div [ class "post-header" ]
+                    [ h2 [] [ text postContent.post.title ]
+                    , div [ class "post-meta" ]
+                        [ span [ class "post-category" ] [ text postContent.post.category ]
+                        , span [ class "post-date" ] [ text postContent.post.date ]
                         ]
-                    , div [ class "post-content" ] 
-                        [ renderPostContent postContent ]
                     ]
-            Nothing ->
-                div [ class "error" ] [ text "Post not found" ]
+                , div [ class "post-content" ] 
+                    [ renderPostContent postContent ]
+                ]
+        Just (LoadError e) ->
+            div [ class "error" ] [ text "Post not found" ]
+        Just Loading ->
+            div [ class "loading" ] [ text "Loading post..." ]
+        Nothing ->
+            div [ class "error" ] [ text "No post selected" ]
 
 renderPostContent : PostContent -> Html Msg
 renderPostContent postContent =

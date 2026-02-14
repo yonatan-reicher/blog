@@ -38,7 +38,7 @@
 <body>
     <script>
         // Function to highlight all code blocks
-        function highlightCodeBlocks() {
+        function trimAndHighlightCodeBlocks() {
             document.querySelectorAll('pre code').forEach(block => {
                 // Skip if already visited
                 if (block.classList.contains('hljs')) return;
