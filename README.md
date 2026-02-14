@@ -42,8 +42,8 @@ Because this is a single-page site hosted on GitHub, I use query parameters for
 navigation (GitHub hosting only allows having a single domain path host a
 single-page site. So it's either this or the ugly hash-based routing).
 
-- Home: `?` or `?page=home`
-- Post: `page=post/<id>`
+- Home: `?`
+- Post: `?post=<slug>`
 
 ## Adding a Post
 
