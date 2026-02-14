@@ -31,50 +31,53 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
-    <script src="elm.js"></script>
+
+    <!-- Elm generated code! -->
+    <script src="build/elm.js"></script>
 </head>
 <body>
     <script>
         // Function to highlight all code blocks
         function highlightCodeBlocks() {
-            document.querySelectorAll('pre code').forEach((block) => {
-                // Only highlight if not already highlighted
-                if (!block.classList.contains('hljs')) {
-                    // elm-explorations/markdown adds 'lang-*' classes
-                    // but highlight.js expects 'language-*' classes
-                    // Convert lang-* to language-* for compatibility
-                    block.classList.forEach((className) => {
-                        if (className.startsWith('lang-')) {
-                            const language = className.substring(5);
-                            block.classList.add('language-' + language);
-                        }
-                    });
-                    
-                    hljs.highlightElement(block);
-                }
+            document.querySelectorAll('pre code').forEach(block => {
+                // Skip if already visited
+                if (block.classList.contains('hljs')) return;
+                // elm-explorations/markdown adds 'lang-*' classes
+                // but highlight.js expects 'language-*' classes
+                // Convert lang-* to language-* for compatibility
+                block.classList.forEach(className => {
+                    if (className.startsWith('lang-')) {
+                        const language = className.substring(5);
+                        block.classList.add('language-' + language);
+                    }
+                });
+                // Highlight
+                hljs.highlightElement(block);
+                // Trim
+                block.innerHTML = block.innerHTML.trim();
             });
         }
 
-        // Initial highlighting
-        setTimeout(highlightCodeBlocks, 100);
-
-        // Watch for DOM changes to highlight dynamically loaded content
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.addedNodes.length) {
-                    setTimeout(highlightCodeBlocks, 50);
-                }
+        function fixScripts() {
+            document.querySelectorAll('[script]').forEach(el => {
+                el.hidden = true;
+                const newEl = document.createElement('script');
+                newEl.innerHTML = el.getAttribute('script');
+                document.body.appendChild(newEl);
             });
-        });
-
-        // Start observing the app container
-        observer.observe(document.getElementById('app'), {
-            childList: true,
-            subtree: true
-        });
+        }
 
         var app = Elm.Main.init({
-            node: document.getElementById('app')
+            flags: {
+                userAgent: navigator.userAgent.toLowerCase(),
+            },
+        });
+        app.ports.onViewPost.subscribe(() => {
+            // Wait one frame, so Elm can finish messing with the DOM.
+            window.requestAnimationFrame(() => {
+                trimAndHighlightCodeBlocks();
+                fixScripts();
+            });
         });
     </script>
 </body>
