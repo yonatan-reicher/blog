@@ -30,6 +30,8 @@ body {
 }
 
 .container {
+    display: flex;
+    flex-direction: column;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -38,12 +40,13 @@ body {
 /* Header */
 .header {
     background: var(--bg-secondary);
-    padding: 1rem 0;
+    padding: 1rem 1rem;
     border-bottom: 1px solid var(--border-color);
     margin-bottom: 2rem;
 }
 
 .site-title {
+    display: inline;
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--primary-color);
@@ -52,9 +55,10 @@ body {
 }
 
 .nav {
-    display: flex;
+    display: inline-flex;
     gap: 1.5rem;
     align-items: center;
+    margin-left: 1em;
 }
 
 .nav a {
